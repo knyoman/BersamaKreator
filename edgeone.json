@@ -1,7 +1,7 @@
 {
-  "name": "nanoconnect-app",
+  "name": "bersamakreator-app",
   "version": "1.0.0",
-  "description": "NanoConnect Application",
+  "description": "BersamaKreator Application",
   "build": {
     "command": "npm install && npm run build",
     "output": "dist"

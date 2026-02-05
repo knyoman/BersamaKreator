@@ -1,4 +1,6 @@
-# NanoConnect – SME & Nano Influencer Matching Platform
+# BersamaKreator - SME & Nano Influencer Matching Platform
+
+> 🎓 **Proyek Praktik Kelas Davhandal 2026**
 
 ## 📌 Project Overview
 
@@ -56,21 +58,6 @@ NanoConnect adalah platform yang menghubungkan UMKM/SME dengan nano influencer l
 ### Deployments
 
 - EdgeOne Pages
-
----
-
-## 🧱 Application Architecture
-
-### Pages & Components
-
---- Homepage (bagian hero gunakan headline besar dan jangan bagikan dua layar )
-├── About
-├── Influencer Listing
-├── Influencer Detail
-├── Order / Booking System
-├── AI Recommendations
-├── Terms & Conditions
-└── Authentication Pages
 
 ### Data Models
 

@@ -5,10 +5,17 @@ node_modules/
 dist/
 build/
 
-# Environment variables
+# Environment variables - IMPORTANT!
 .env
 .env.local
 .env.production
+.env.*.local
+
+# Database files (DO NOT COMMIT TO GITHUB)
+*.sql
+database_setup.sql
+INSTALL_ALL_IN_ONE.sql
+specdb.sql
 
 # Logs
 logs
@@ -16,10 +23,12 @@ logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# IDE
+# IDE - Editor specific
 .vscode/
 .idea/
+.cursor/
 *.swp
 *.swo
 *~
@@ -27,9 +36,16 @@ yarn-error.log*
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Testing
 coverage/
+.nyc_output
 
 # Misc
 .cache/
+*.tsbuildinfo
+.temp/
+
+# Optional: EdgeOne deployment artifacts (uncomment if needed)
+# .edgeone/

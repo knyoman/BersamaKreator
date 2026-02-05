@@ -12,7 +12,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* About */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-4">NANOCONNECT</h3>
+            <h3 className="text-white font-bold text-lg mb-4">BersamaKreator</h3>
             <p className="text-sm mb-4">
               Platform yang menghubungkan UMKM/SME dengan nano influencer lokal untuk kampanye marketing yang efektif.
             </p>
@@ -64,8 +64,8 @@ const Footer = () => {
               </li>
               <li className="flex items-center space-x-3">
                 <FontAwesomeIcon icon={faEnvelope} />
-                <a href="mailto:support@nanoconnect.id" className="hover:text-primary-400 transition-colors">
-                  support@nanoconnect.id
+                <a href="mailto:support@bersamakreator.id" className="hover:text-primary-400 transition-colors">
+                  support@bersamakreator.id
                 </a>
               </li>
               <li className="flex items-center space-x-3">
@@ -80,7 +80,7 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="border-t border-gray-800 mt-8 pt-8 text-sm text-center">
-          <p>&copy; {currentYear} NANOCONNECT. All rights reserved.</p>
+          <p>&copy; {currentYear} BersamaKreator. All rights reserved.</p>
         </div>
       </div>
     </footer>
