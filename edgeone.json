@@ -1,0 +1,20 @@
+{
+  "name": "nanoconnect-app",
+  "version": "1.0.0",
+  "description": "NanoConnect Application",
+  "build": {
+    "command": "npm install && npm run build",
+    "output": "dist"
+  },
+  "functions": {
+    "directory": "functions",
+    "runtime": "nodejs"
+  },
+  "caches" : [
+    {
+        "source" : "/images/*",
+        "cacheTtl" : 86400
+    }
+  ]
+}
+
