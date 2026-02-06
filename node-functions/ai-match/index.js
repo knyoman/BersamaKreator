@@ -4,91 +4,112 @@ import OpenAI from 'openai';
 export async function onRequest(context) {
   // 1. CORS Headers
   const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
   };
 
-  if (context.request.method === "OPTIONS") {
+  if (context.request.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // 2. Setup Clients (Supabase & OpenAI)
-  // 2. Setup Clients (Supabase & OpenAI)
-  // 2. Setup Clients (Supabase & Grok/xAI)
-  const supabaseUrl = context.env?.SUPABASE_URL || context.env?.VITE_SUPABASE_URL || process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const supabaseKey = context.env?.SUPABASE_ANON_KEY || context.env?.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-  
-  // Switch to Grok API Key
-  const xaiKey = context.env?.XAI_API_KEY || process.env.XAI_API_KEY;
-
-  if (!xaiKey) {
-    return new Response(JSON.stringify({ 
-      error: "XAI API Key is missing. Please add XAI_API_KEY to your environment variables." 
-    }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseKey);
-  
-  // Initialize OpenAI Client but point to xAI Base URL
-  const openai = new OpenAI({ 
-    apiKey: xaiKey,
-    baseURL: "https://api.x.ai/v1"
-  });
-
-  // 3. Parse Request
-  let body;
   try {
-    body = await context.request.json();
-  } catch (e) {
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400, headers: corsHeaders });
-  }
+    // 2. Setup Clients (Supabase & Grok/xAI)
+    const supabaseUrl = context.env?.SUPABASE_URL || context.env?.VITE_SUPABASE_URL || process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const supabaseKey = context.env?.SUPABASE_ANON_KEY || context.env?.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    const xaiKey = context.env?.XAI_API_KEY || process.env.XAI_API_KEY;
 
-  // ===== ANTI-BOT: HONEYPOT VERIFICATION =====
-  // If honeypot field is filled, reject silently (it's a bot)
-  if (body._honeypot && body._honeypot !== '') {
-    console.log('🤖 Bot detected via honeypot field');
-    return new Response(JSON.stringify({ error: "Invalid request" }), { 
-      status: 403, 
-      headers: { ...corsHeaders, "Content-Type": "application/json" } 
+    // Validate all required environment variables
+    const missingVars = [];
+    if (!supabaseUrl) missingVars.push('SUPABASE_URL');
+    if (!supabaseKey) missingVars.push('SUPABASE_ANON_KEY');
+    if (!xaiKey) missingVars.push('XAI_API_KEY');
+
+    if (missingVars.length > 0) {
+      console.error(`❌ Missing environment variables: ${missingVars.join(', ')}`);
+      return new Response(
+        JSON.stringify({
+          error: `Missing environment variables: ${missingVars.join(', ')}. Please configure them in EdgeOne Project Settings.`,
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    console.log('✅ All environment variables configured');
+    console.log('✅ Supabase URL:', supabaseUrl);
+    console.log('✅ XAI API Key configured:', xaiKey ? 'Yes' : 'No');
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Initialize OpenAI Client but point to xAI Base URL
+    const openai = new OpenAI({
+      apiKey: xaiKey,
+      baseURL: 'https://api.x.ai/v1',
     });
-  }
-  
-  // Remove honeypot from payload before processing
-  delete body._honeypot;
 
-  const { budget, niche, targetAudience, campaignGoal } = body;
+    // 3. Parse Request
+    let body;
+    try {
+      body = await context.request.json();
+    } catch (e) {
+      return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), { status: 400, headers: corsHeaders });
+    }
 
-  // 4. Step 1: Pre-filtering (Get Candidates from Database)
-  // We filter by niche first to save tokens and ensure relevance
-  let query = supabase.from('influencers').select('*, users!inner(name, profile_image)').limit(10);
-  
-  if (niche) {
-    // Basic fuzzy matching or exact match depending on data
-    query = query.ilike('niche', `%${niche}%`);
-  }
-  
-  // Filter by budget (assuming price_per_post is the metric)
-  if (budget) {
-    query = query.lte('price_per_post', budget);
-  }
+    // ===== ANTI-BOT: HONEYPOT VERIFICATION =====
+    // If honeypot field is filled, reject silently (it's a bot)
+    if (body._honeypot && body._honeypot !== '') {
+      console.log('🤖 Bot detected via honeypot field');
+      return new Response(JSON.stringify({ error: 'Invalid request' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-  const { data: candidates, error } = await query;
+    // Remove honeypot from payload before processing
+    delete body._honeypot;
 
-  if (error) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
-  }
+    const { budget, niche, targetAudience, campaignGoal } = body;
 
-  if (!candidates || candidates.length === 0) {
-    return new Response(JSON.stringify({ 
-      data: { message: "No influencers found matching basic criteria (Budget/Niche). Try adjusting filters.", influencers: [] }
-    }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  }
+    console.log('📋 Received request:', { budget, niche, targetAudience, campaignGoal });
 
-  // 5. Step 2: AI Analysis (OpenAI)
-  // We ask AI to rank these candidates based on the Goal and Audience
-  try {
-    const prompt = `
+    // 4. Step 1: Pre-filtering (Get Candidates from Database)
+    // We filter by niche first to save tokens and ensure relevance
+    let query = supabase.from('influencers').select('*, users!inner(name, profile_image)').limit(10);
+
+    if (niche) {
+      // Basic fuzzy matching or exact match depending on data
+      query = query.ilike('niche', `%${niche}%`);
+    }
+
+    // Filter by budget (assuming price_per_post is the metric)
+    if (budget) {
+      query = query.lte('price_per_post', budget);
+    }
+
+    const { data: candidates, error } = await query;
+
+    if (error) {
+      console.error('❌ Supabase error:', error);
+      return new Response(JSON.stringify({ error: `Database error: ${error.message}` }), { status: 500, headers: corsHeaders });
+    }
+
+    if (!candidates || candidates.length === 0) {
+      console.log('⚠️ No influencers found matching criteria');
+      return new Response(
+        JSON.stringify({
+          data: { message: 'No influencers found matching basic criteria (Budget/Niche). Try adjusting filters.', influencers: [] },
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    console.log(`✅ Found ${candidates.length} candidate influencers`);
+
+    // 5. Step 2: AI Analysis (OpenAI)
+    // We ask AI to rank these candidates based on the Goal and Audience
+    try {
+      console.log('🤖 Starting AI analysis with Grok...');
+      const prompt = `
       Role: You are a Senior Influencer Marketing Strategist with 10 years of experience.
       
       Context:
@@ -102,19 +123,21 @@ export async function onRequest(context) {
       - Preferred Niche: "${niche || 'Any'}"
 
       Candidate List (JSON):
-      ${JSON.stringify(candidates.map(c => ({ 
-        id: c.id, 
-        name: c.users.name,
-        username: c.username,
-        niche: c.niche, 
-        price: c.price_per_post,
-        bio: c.bio,
-        platforms: {
-          instagram: !!c.instagram_url,
-          tiktok: !!c.tiktok_url,
-          youtube: !!c.youtube_url
-        } 
-      })))}
+      ${JSON.stringify(
+        candidates.map((c) => ({
+          id: c.id,
+          name: c.users.name,
+          username: c.username,
+          niche: c.niche,
+          price: c.price_per_post,
+          bio: c.bio,
+          platforms: {
+            instagram: !!c.instagram_url,
+            tiktok: !!c.tiktok_url,
+            youtube: !!c.youtube_url,
+          },
+        })),
+      )}
 
       Analysis Instructions:
       1. **Relevance**: Does the influencer's Niche and Bio align with the Campaign Goal?
@@ -137,36 +160,63 @@ export async function onRequest(context) {
       }
     `;
 
-    const completion = await openai.chat.completions.create({
-      messages: [{ role: "system", content: "You are a helpful AI assistant that outputs JSON only." }, { role: "user", content: prompt }],
-      model: "grok-4-fast-non-reasoning",
-      response_format: { type: "json_object" },
-    });
+      const completion = await openai.chat.completions.create({
+        messages: [
+          { role: 'system', content: 'You are a helpful AI assistant that outputs JSON only.' },
+          { role: 'user', content: prompt },
+        ],
+        model: 'grok-4-fast-non-reasoning',
+        response_format: { type: 'json_object' },
+      });
 
-    const aiResult = JSON.parse(completion.choices[0].message.content);
-    
-    // Merge AI results back with full influencer data
-    const finalResults = aiResult.recommendations.map(rec => {
-      const fullProfile = candidates.find(c => c.id === rec.id);
-      if (!fullProfile) return null; // Safety check
-      return {
-        ...fullProfile,
-        match_score: rec.match_score,
-        reasoning: rec.reasoning
-      };
-    }).filter(Boolean).sort((a, b) => b.match_score - a.match_score);
+      console.log('✅ AI analysis completed');
+      const aiResult = JSON.parse(completion.choices[0].message.content);
 
-    return new Response(JSON.stringify({ 
-      data: { influencers: finalResults, message: "AI matching complete." } 
-    }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      // Merge AI results back with full influencer data
+      const finalResults = aiResult.recommendations
+        .map((rec) => {
+          const fullProfile = candidates.find((c) => c.id === rec.id);
+          if (!fullProfile) return null; // Safety check
+          return {
+            ...fullProfile,
+            match_score: rec.match_score,
+            reasoning: rec.reasoning,
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => b.match_score - a.match_score);
 
-  } catch (aiError) {
-    console.error("OpenAI Error:", aiError);
-    // Don't expose internal AI errors to client
-    return new Response(JSON.stringify({ 
-      error: "AI matching service is temporarily unavailable. Please try again later." 
-    }), { 
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } 
-    });
+      console.log(`✅ Returning ${finalResults.length} recommendations`);
+      return new Response(
+        JSON.stringify({
+          data: { influencers: finalResults, message: 'AI matching complete.' },
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    } catch (aiError) {
+      console.error('❌ AI Error:', aiError.message);
+      console.error('AI Error Details:', aiError);
+      // Don't expose internal AI errors to client
+      return new Response(
+        JSON.stringify({
+          error: 'AI matching service is temporarily unavailable. Please try again later.',
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      );
+    }
+  } catch (err) {
+    console.error('❌ Unexpected error:', err);
+    return new Response(
+      JSON.stringify({
+        error: 'An unexpected error occurred. Please try again later.',
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      },
+    );
   }
 }
