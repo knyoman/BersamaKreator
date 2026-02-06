@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faRobot, faSpinner, faLightbulb, faClock, faExclamationTriangle, faSync } from '@fortawesome/free-solid-svg-icons';
 
@@ -530,7 +531,7 @@ const AIRecommendations = () => {
                                   <div className="text-xs text-gray-500 uppercase tracking-wide">Price/Post</div>
                                   <div className="text-2xl font-bold text-gray-900">Rp {parseInt(inf.price_per_post).toLocaleString('id-ID')}</div>
                                 </div>
-                                <button className="btn btn-primary px-6 py-3 text-base">Book Now</button>
+                                <Link to={`/influencer/${inf.username}`} className="btn btn-primary px-6 py-3 text-base">Book Now</Link>
                               </div>
                             </div>
                           </div>
