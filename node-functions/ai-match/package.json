@@ -1,0 +1,9 @@
+{
+  "name": "ai-match",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "openai": "^4.20.0"
+  }
+}

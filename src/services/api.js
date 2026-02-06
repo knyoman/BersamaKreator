@@ -139,6 +139,35 @@ export const getOrders = async () => {
  */
 export const createOrder = async (orderData) => {
   try {
+    const edgeFunctionUrl = import.meta.env.VITE_EDGE_FUNCTION_URL;
+    const isconfigured = edgeFunctionUrl && !edgeFunctionUrl.includes('your-edgeone-domain');
+
+    // 1. Priority: Edge Function (Secure)
+    if (isconfigured) {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      const response = await fetch(edgeFunctionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Pass JWT for RLS
+        },
+        body: JSON.stringify(orderData)
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Edge Function Order Creation Failed');
+      }
+      
+      return { data: result.data, error: null };
+    }
+
+    // 2. Fallback: Direct Supabase Insert (Client-side)
+    // Used if Edge Function is not yet configured or is using placeholder
+    console.warn('Using Direct DB Insert (Edge Function not configured)');
     const { data, error } = await supabase.from('orders').insert([orderData]).select().single();
 
     if (error) throw error;

@@ -17,7 +17,7 @@ const Footer = () => {
               Platform yang menghubungkan UMKM/SME dengan nano influencer lokal untuk kampanye marketing yang efektif.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="hover:text-primary-400 transition-colors">
+              <a href="https://www.instagram.com/knyoman.26" className="hover:text-primary-400 transition-colors">
                 <FontAwesomeIcon icon={faInstagram} size="lg" />
               </a>
               <a href="#" className="hover:text-primary-400 transition-colors">
@@ -60,7 +60,7 @@ const Footer = () => {
             <ul className="space-y-3 text-sm">
               <li className="flex items-start space-x-3">
                 <FontAwesomeIcon icon={faMapMarkerAlt} className="mt-1" />
-                <span>Jakarta, Indonesia</span>
+                <span>Palembang, Indonesia</span>
               </li>
               <li className="flex items-center space-x-3">
                 <FontAwesomeIcon icon={faEnvelope} />
@@ -70,8 +70,8 @@ const Footer = () => {
               </li>
               <li className="flex items-center space-x-3">
                 <FontAwesomeIcon icon={faPhone} />
-                <a href="tel:+6281234567890" className="hover:text-primary-400 transition-colors">
-                  +62 812-3456-7890
+                <a href="tel:+6281134567890" className="hover:text-primary-400 transition-colors">
+                  +62 811-3456-7890
                 </a>
               </li>
             </ul>

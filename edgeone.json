@@ -7,7 +7,7 @@
     "output": "dist"
   },
   "functions": {
-    "directory": "functions",
+    "directory": "node-functions",
     "runtime": "nodejs"
   },
   "caches" : [
