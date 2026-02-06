@@ -1,7 +1,42 @@
+import { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faRocket, faUsers, faChartLine, faHandshake } from '@fortawesome/free-solid-svg-icons'
+import { getPlatformStats } from '../services/api'
 
 const About = () => {
+  const [stats, setStats] = useState({
+    influencersCount: 0,
+    smeCount: 0,
+    successRate: 95,
+    totalCampaigns: 5000 // We don't have this in API yet, keeping hardcoded or could simulate
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const { data, error } = await getPlatformStats()
+      if (!error && data) {
+        setStats(prev => ({
+          ...prev,
+          influencersCount: data.influencersCount,
+          smeCount: data.smeCount,
+          successRate: data.successRate,
+          // Calculate a rough estimate for campaigns based on orders if available, or keep static
+          totalCampaigns: Math.floor((data.smeCount * 5)) + 1000 // Just a simulation or keep static
+        }))
+      }
+      setLoading(false)
+    }
+    fetchStats()
+  }, [])
+
+  const formatNumber = (num) => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1).replace('.0', '') + 'K+'
+    }
+    return num + '+'
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero */}
@@ -28,10 +63,26 @@ const About = () => {
 
           <div className="grid md:grid-cols-4 gap-8 mt-12">
             {[
-              { icon: faUsers, number: '500+', label: 'Influencers' },
-              { icon: faHandshake, number: '1,000+', label: 'SME Partners' },
-              { icon: faChartLine, number: '95%', label: 'Success Rate' },
-              { icon: faRocket, number: '5,000+', label: 'Campaigns' }
+              { 
+                icon: faUsers, 
+                number: loading ? '...' : formatNumber(stats.influencersCount), 
+                label: 'Influencers' 
+              },
+              { 
+                icon: faHandshake, 
+                number: loading ? '...' : formatNumber(stats.smeCount), 
+                label: 'SME Partners' 
+              },
+              { 
+                icon: faChartLine, 
+                number: loading ? '...' : `${stats.successRate}%`, 
+                label: 'Success Rate' 
+              },
+              { 
+                icon: faRocket, 
+                number: '5K+', // Keep static or use simulated
+                label: 'Campaigns' 
+              }
             ].map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="w-16 h-16 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">

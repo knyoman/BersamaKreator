@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSearch, faFilter, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { getInfluencers } from '../services/api'
+import { logger } from '../utils/logger'
 import InfluencerCard from '../components/common/InfluencerCard'
 
 const InfluencerListing = () => {
@@ -23,18 +24,18 @@ const InfluencerListing = () => {
     setLoading(true)
     setError(null) // Reset error state
     
-    console.log('[InfluencerListing] Fetching influencers with filters:', appliedFilters);
+    logger.debug('[InfluencerListing] Fetching influencers with filters:', appliedFilters);
     
     const { data, error } = await getInfluencers(appliedFilters)
     
-    console.log('[InfluencerListing] Fetch result:', { 
+    logger.debug('[InfluencerListing] Fetch result:', { 
       dataCount: data?.length, 
       hasError: !!error 
     });
     
     if (error) {
       const errorMessage = error.message || 'Failed to fetch influencers';
-      console.error('[InfluencerListing] Error:', error);
+      logger.error('[InfluencerListing] Error:', error.message);
       setError(errorMessage)
     } else {
       setInfluencers(data || [])

@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faRobot, faSpinner, faLightbulb } from '@fortawesome/free-solid-svg-icons'
+import { faRobot, faSpinner, faLightbulb, faClock } from '@fortawesome/free-solid-svg-icons'
 
 const AIRecommendations = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +11,34 @@ const AIRecommendations = () => {
   })
   const [loading, setLoading] = useState(false)
   const [recommendations, setRecommendations] = useState(null)
+  
+  // Anti-bot protection states
+  const [honeypot, setHoneypot] = useState('')
+  const [cooldownRemaining, setCooldownRemaining] = useState(0)
+  
+  const COOLDOWN_SECONDS = 60
+  const STORAGE_KEY = 'ai_recommendations_last_request'
+
+  // Check and update cooldown timer on mount and when localStorage changes
+  useEffect(() => {
+    const checkCooldown = () => {
+      const lastRequestTime = localStorage.getItem(STORAGE_KEY)
+      if (lastRequestTime) {
+        const elapsed = (Date.now() - parseInt(lastRequestTime)) / 1000
+        const remaining = Math.max(0, Math.ceil(COOLDOWN_SECONDS - elapsed))
+        setCooldownRemaining(remaining)
+      }
+    }
+    
+    checkCooldown()
+    
+    // Update countdown every second
+    const interval = setInterval(() => {
+      checkCooldown()
+    }, 1000)
+    
+    return () => clearInterval(interval)
+  }, [])
 
   const handleChange = (e) => {
     setFormData({
@@ -21,8 +49,34 @@ const AIRecommendations = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // ========== ANTI-BOT CHECK 1: HONEYPOT ==========
+    // If honeypot field is filled, it's a bot (humans can't see this field)
+    if (honeypot !== '') {
+      console.warn('🤖 Bot detected: Honeypot field was filled')
+      // Silent rejection - don't give feedback to bots
+      return
+    }
+    
+    // ========== ANTI-BOT CHECK 2: COOLDOWN ==========
+    const now = Date.now()
+    const lastRequestTime = localStorage.getItem(STORAGE_KEY)
+    
+    if (lastRequestTime) {
+      const elapsed = (now - parseInt(lastRequestTime)) / 1000
+      if (elapsed < COOLDOWN_SECONDS) {
+        const remaining = Math.ceil(COOLDOWN_SECONDS - elapsed)
+        alert(`⏱️ Please wait ${remaining} seconds before submitting again to prevent spam.`)
+        return
+      }
+    }
+    
     setLoading(true)
     setRecommendations(null)
+    
+    // Save request timestamp
+    localStorage.setItem(STORAGE_KEY, now.toString())
+    setCooldownRemaining(COOLDOWN_SECONDS)
 
     try {
       const aiUrl = import.meta.env.VITE_EDGE_FUNCTION_AI_URL;
@@ -35,7 +89,10 @@ const AIRecommendations = () => {
         const response = await fetch(aiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          body: JSON.stringify({
+            ...formData,
+            _honeypot: honeypot // Backend will verify this is empty
+          })
         });
         
         const result = await response.json();
@@ -152,16 +209,49 @@ const AIRecommendations = () => {
                 />
               </div>
 
+              {/* ===== HONEYPOT FIELD (HIDDEN - CATCHES BOTS) ===== */}
+              <input
+                type="text"
+                name="website_url"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+                style={{ 
+                  position: 'absolute',
+                  left: '-9999px',
+                  opacity: 0,
+                  pointerEvents: 'none',
+                  width: '1px',
+                  height: '1px'
+                }}
+                tabIndex="-1"
+                autoComplete="off"
+                aria-hidden="true"
+              />
+
               <div className="md:col-span-2 mt-4">
+                {cooldownRemaining > 0 && (
+                  <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
+                    <FontAwesomeIcon icon={faClock} className="text-yellow-600 mr-2" />
+                    <span className="text-sm text-yellow-800">
+                      Please wait <strong>{cooldownRemaining}s</strong> before submitting again
+                    </span>
+                  </div>
+                )}
+                
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="btn btn-primary w-full text-lg py-4 shadow-lg shadow-primary-500/30"
+                  disabled={loading || cooldownRemaining > 0}
+                  className="btn btn-primary w-full text-lg py-4 shadow-lg shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <>
                       <FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" />
                       Analyzing Database with AI...
+                    </>
+                  ) : cooldownRemaining > 0 ? (
+                    <>
+                      <FontAwesomeIcon icon={faClock} className="mr-2" />
+                      Wait {cooldownRemaining}s
                     </>
                   ) : (
                     <>

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
@@ -9,8 +10,37 @@ import {
   faCheckCircle,
   faArrowRight
 } from '@fortawesome/free-solid-svg-icons'
+import { getPlatformStats } from '../services/api'
 
 const HomePage = () => {
+  const [stats, setStats] = useState({
+    influencersCount: 0,
+    smeCount: 0,
+    successRate: 95
+  })
+  const [statsLoading, setStatsLoading] = useState(true)
+
+  // Fetch platform stats on mount
+  useEffect(() => {
+    const fetchStats = async () => {
+      const { data, error } = await getPlatformStats()
+      if (!error && data) {
+        setStats(data)
+      }
+      setStatsLoading(false)
+    }
+    
+    fetchStats()
+  }, [])
+
+  // Format numbers for display (e.g., 1234 => 1.2K)
+  const formatNumber = (num) => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1).replace('.0', '') + 'K+'
+    }
+    return num + '+'
+  }
+
   return (
     <div>
       {/* Hero Section - Full Screen & Minimalist */}
@@ -63,18 +93,24 @@ const HomePage = () => {
             </Link>
           </div>
 
-          {/* Stats - Minimal */}
+          {/* Stats - Dynamic from Database */}
           <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto mt-20">
             <div>
-              <div className="text-4xl font-bold text-gray-900 mb-1">500+</div>
+              <div className="text-4xl font-bold text-gray-900 mb-1">
+                {statsLoading ? '...' : formatNumber(stats.influencersCount)}
+              </div>
               <div className="text-sm text-gray-600">Influencers</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-gray-900 mb-1">1,000+</div>
+              <div className="text-4xl font-bold text-gray-900 mb-1">
+                {statsLoading ? '...' : formatNumber(stats.smeCount)}
+              </div>
               <div className="text-sm text-gray-600">SME Partners</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-gray-900 mb-1">95%</div>
+              <div className="text-4xl font-bold text-gray-900 mb-1">
+                {statsLoading ? '...' : `${stats.successRate}%`}
+              </div>
               <div className="text-sm text-gray-600">Success Rate</div>
             </div>
           </div>

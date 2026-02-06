@@ -44,6 +44,19 @@ export async function onRequest(context) {
     return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400, headers: corsHeaders });
   }
 
+  // ===== ANTI-BOT: HONEYPOT VERIFICATION =====
+  // If honeypot field is filled, reject silently (it's a bot)
+  if (body._honeypot && body._honeypot !== '') {
+    console.log('🤖 Bot detected via honeypot field');
+    return new Response(JSON.stringify({ error: "Invalid request" }), { 
+      status: 403, 
+      headers: { ...corsHeaders, "Content-Type": "application/json" } 
+    });
+  }
+  
+  // Remove honeypot from payload before processing
+  delete body._honeypot;
+
   const { budget, niche, targetAudience, campaignGoal } = body;
 
   // 4. Step 1: Pre-filtering (Get Candidates from Database)
