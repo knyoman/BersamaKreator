@@ -47,5 +47,6 @@ coverage/
 *.tsbuildinfo
 .temp/
 
-# Optional: EdgeOne deployment artifacts (uncomment if needed)
+# EdgeOne deployment artifacts (contains bundled code with secrets)
+.edgeone/
 # .edgeone/
