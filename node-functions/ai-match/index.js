@@ -169,9 +169,7 @@ export async function onRequest(context) {
           model: 'grok-4-fast-non-reasoning',
           response_format: { type: 'json_object' },
         }),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('API request timeout after 25 seconds')), 25000)
-        )
+        new Promise((_, reject) => setTimeout(() => reject(new Error('API request timeout after 25 seconds')), 25000)),
       ]);
 
       console.log('✅ AI analysis completed');
@@ -203,11 +201,11 @@ export async function onRequest(context) {
       console.error('❌ AI Error Message:', aiError.message);
       console.error('❌ AI Error Status:', aiError.status);
       console.error('❌ Full Stack:', aiError);
-      
+
       // Return more detailed error based on error type
       let errorMessage = 'AI matching service is temporarily unavailable. Please try again later.';
       let statusCode = 500;
-      
+
       if (aiError.message.includes('timeout')) {
         errorMessage = 'AI service is taking too long. Please try again in a moment.';
         statusCode = 504;
@@ -218,11 +216,11 @@ export async function onRequest(context) {
         errorMessage = 'Too many requests. Please try again later.';
         statusCode = 429;
       }
-      
+
       return new Response(
         JSON.stringify({
           error: errorMessage,
-          debug: process.env.NODE_ENV === 'development' ? aiError.message : undefined
+          debug: process.env.NODE_ENV === 'development' ? aiError.message : undefined,
         }),
         {
           status: statusCode,
