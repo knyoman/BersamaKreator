@@ -160,14 +160,19 @@ export async function onRequest(context) {
       }
     `;
 
-      const completion = await openai.chat.completions.create({
-        messages: [
-          { role: 'system', content: 'You are a helpful AI assistant that outputs JSON only.' },
-          { role: 'user', content: prompt },
-        ],
-        model: 'grok-4-fast-non-reasoning',
-        response_format: { type: 'json_object' },
-      });
+      const completion = await Promise.race([
+        openai.chat.completions.create({
+          messages: [
+            { role: 'system', content: 'You are a helpful AI assistant that outputs JSON only.' },
+            { role: 'user', content: prompt },
+          ],
+          model: 'grok-4-fast-non-reasoning',
+          response_format: { type: 'json_object' },
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('API request timeout after 25 seconds')), 25000)
+        )
+      ]);
 
       console.log('✅ AI analysis completed');
       const aiResult = JSON.parse(completion.choices[0].message.content);
@@ -194,15 +199,33 @@ export async function onRequest(context) {
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     } catch (aiError) {
-      console.error('❌ AI Error:', aiError.message);
-      console.error('AI Error Details:', aiError);
-      // Don't expose internal AI errors to client
+      console.error('❌ AI Error Type:', aiError.constructor.name);
+      console.error('❌ AI Error Message:', aiError.message);
+      console.error('❌ AI Error Status:', aiError.status);
+      console.error('❌ Full Stack:', aiError);
+      
+      // Return more detailed error based on error type
+      let errorMessage = 'AI matching service is temporarily unavailable. Please try again later.';
+      let statusCode = 500;
+      
+      if (aiError.message.includes('timeout')) {
+        errorMessage = 'AI service is taking too long. Please try again in a moment.';
+        statusCode = 504;
+      } else if (aiError.status === 401) {
+        errorMessage = 'Authentication failed. Please check XAI_API_KEY.';
+        statusCode = 401;
+      } else if (aiError.status === 429) {
+        errorMessage = 'Too many requests. Please try again later.';
+        statusCode = 429;
+      }
+      
       return new Response(
         JSON.stringify({
-          error: 'AI matching service is temporarily unavailable. Please try again later.',
+          error: errorMessage,
+          debug: process.env.NODE_ENV === 'development' ? aiError.message : undefined
         }),
         {
-          status: 500,
+          status: statusCode,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         },
       );
