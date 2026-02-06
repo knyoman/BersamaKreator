@@ -12,18 +12,27 @@ function loadEnv(filePath) {
   if (!fs.existsSync(filePath)) return {};
   const content = fs.readFileSync(filePath, 'utf-8');
   const env = {};
-  content.split('\n').forEach(line => {
-    const [key, ...values] = line.split('=');
-    if (key && values.length > 0) {
-      env[key.trim()] = values.join('=').trim();
+  content.split('\n').forEach((line) => {
+    // Skip empty lines and comments
+    const trimmedLine = line.trim();
+    if (!trimmedLine || trimmedLine.startsWith('#')) return;
+
+    const equalsIndex = trimmedLine.indexOf('=');
+    if (equalsIndex === -1) return;
+
+    const key = trimmedLine.substring(0, equalsIndex).trim();
+    const value = trimmedLine.substring(equalsIndex + 1).trim();
+
+    if (key) {
+      env[key] = value;
     }
   });
   return env;
 }
 
-const env = { 
-    ...loadEnv('./.env'), 
-    ...loadEnv('./.env.local') 
+const env = {
+  ...loadEnv('./.env'),
+  ...loadEnv('./.env.local'),
 };
 
 // Create Server
@@ -50,27 +59,26 @@ const server = http.createServer(async (req, res) => {
         buffers.push(chunk);
       }
       const bodyText = Buffer.concat(buffers).toString();
-      
+
       // Mock Context object like EdgeOne
       const context = {
         request: {
           method: req.method,
           headers: {
-            get: (name) => req.headers[name.toLowerCase()]
+            get: (name) => req.headers[name.toLowerCase()],
           },
-          json: async () => JSON.parse(bodyText || '{}')
+          json: async () => JSON.parse(bodyText || '{}'),
         },
-        env: env
+        env: env,
       };
 
       // Call Function
       const response = await aiMatch(context);
-      
+
       // Send Response
       res.writeHead(response.status, { 'Content-Type': 'application/json' });
       const responseText = await response.text();
       res.end(responseText);
-
     } catch (e) {
       console.error(e);
       res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -84,7 +92,7 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-const PORT = 3003;
+const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
   console.log(`\n🚀 Local Testing Server running at http://localhost:${PORT}`);
   console.log(`👉 Endpoint: POST http://localhost:${PORT}/ai-match`);

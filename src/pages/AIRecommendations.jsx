@@ -11,11 +11,14 @@ const AIRecommendations = () => {
   });
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState(null);
-  const [error, setError] = useState(null); // NEW: Error state
+  const [error, setError] = useState(null); // Error state
 
   // Anti-bot protection states
   const [honeypot, setHoneypot] = useState('');
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
+
+  // Rate limit countdown state
+  const [rateLimitCountdown, setRateLimitCountdown] = useState(0);
 
   const COOLDOWN_SECONDS = 60;
   const STORAGE_KEY = 'ai_recommendations_last_request';
@@ -41,6 +44,23 @@ const AIRecommendations = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Handle rate limit countdown
+  useEffect(() => {
+    if (rateLimitCountdown <= 0) return;
+
+    const interval = setInterval(() => {
+      setRateLimitCountdown((prev) => {
+        if (prev <= 1) {
+          setError(null); // Clear error when countdown reaches 0
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [rateLimitCountdown]);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -48,60 +68,85 @@ const AIRecommendations = () => {
     });
   };
 
-  // Extracted fetch logic for reuse
+  // Extracted fetch logic for reuse - RESPECTS retryAfter for 429
   const fetchAIRecommendations = async () => {
     setLoading(true);
     setRecommendations(null);
     setError(null);
 
-    try {
-      const aiUrl = import.meta.env.VITE_EDGE_FUNCTION_AI_URL;
-      const isConfigured = aiUrl && !aiUrl.includes('your-edgeone-domain');
+    const MAX_RETRIES = 2; // Only for network errors
+    const BASE_DELAY = 2000; // 2 seconds
 
-      let resultData;
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-      if (isConfigured) {
-        // 1. Production/Test Mode: Call Edge Function
-        console.log('📤 Sending request to:', aiUrl);
+    const attemptFetch = async (retryCount = 0) => {
+      try {
+        const aiUrl = import.meta.env.VITE_EDGE_FUNCTION_AI_URL;
+        const isConfigured = aiUrl && !aiUrl.includes('your-edgeone-domain');
 
-        const response = await fetch(aiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ...formData,
-            _honeypot: honeypot, // Backend will verify this is empty
-          }),
-        });
+        let resultData;
 
-        const result = await response.json();
-        console.log('📥 API Response:', result);
+        if (isConfigured) {
+          // 1. Production/Test Mode: Call Edge Function
+          console.log(`📤 Sending request to:`, aiUrl);
 
-        // Handle API errors gracefully
-        if (!response.ok) {
-          // Different error messages based on status code
-          if (response.status === 401) {
-            throw new Error('⚠️ Authentication failed. Please check API configuration.');
-          } else if (response.status === 429) {
-            throw new Error('⏳ Too many requests. Please wait a moment and try again.');
-          } else if (response.status === 503 || response.status === 504) {
-            throw new Error('🔄 AI service is temporarily busy. Please try again in 30 seconds.');
-          } else {
-            throw new Error(result.error || `❌ Server error (${response.status})`);
+          const response = await fetch(aiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...formData,
+              _honeypot: honeypot, // Backend will verify this is empty
+            }),
+          });
+
+          const result = await response.json();
+          console.log('📥 API Response:', result);
+
+          // Handle API errors gracefully
+          if (!response.ok) {
+            // Different error messages based on status code
+            if (response.status === 401) {
+              throw new Error('⚠️ Authentication failed. Please check API configuration.');
+            } else if (response.status === 429) {
+              // ⛔ JANGAN RETRY UNTUK 429 - RESPECT retryAfter ⛔
+              // 429 bukan idempotent, jadi jangan auto-retry
+              const retryAfter = result?.retryAfter || 60;
+              const errorMsg = `⏳ Server sedang sibuk (rate limit). Silakan tunggu ${retryAfter} detik lalu coba lagi.`;
+              console.warn(`🚫 ${errorMsg}`);
+              throw new Error(errorMsg);
+            } else if (response.status === 503 || response.status === 504) {
+              throw new Error('🔄 AI service is temporarily busy. Please try again in 30 seconds.');
+            } else {
+              throw new Error(result.error || `❌ Server error (${response.status})`);
+            }
           }
-        }
 
-        // Validate response has data
-        if (!result.data || !result.data.influencers) {
-          throw new Error('❌ Invalid response from server. Please try again.');
-        }
+          // Validate response has data
+          if (!result.data || !result.data.influencers) {
+            throw new Error('❌ Invalid response from server. Please try again.');
+          }
 
-        resultData = result.data;
-        console.log('✅ Result Data:', resultData);
-      } else {
-        // 2. Not Configured
-        throw new Error('⚙️ AI Backend URL is not configured. Please check .env.local');
+          resultData = result.data;
+          console.log('✅ Result Data:', resultData);
+          return resultData;
+        } else {
+          // 2. Not Configured
+          throw new Error('⚙️ AI Backend URL is not configured. Please check .env.local');
+        }
+      } catch (error) {
+        // ✅ HANYA RETRY untuk network errors (bukan 429)
+        if (retryCount < MAX_RETRIES && error instanceof TypeError) {
+          const delayMs = BASE_DELAY * Math.pow(2, retryCount);
+          console.log(`🔄 Network error. Retry ${retryCount + 1}/${MAX_RETRIES} in ${delayMs / 1000}s...`);
+          await sleep(delayMs);
+          return attemptFetch(retryCount + 1);
+        }
+        throw error;
       }
+    };
 
+    try {
+      const resultData = await attemptFetch();
       setRecommendations(resultData);
     } catch (error) {
       console.error('❌ AI Error:', error);
@@ -116,6 +161,17 @@ const AIRecommendations = () => {
       // Network errors
       if (error instanceof TypeError) {
         errorMessage = '🌐 Network error. Please check your internet connection.';
+      }
+
+      // ⛔ Handle 429 rate limit countdown
+      if (errorMessage.includes('tunggu')) {
+        // Extract wait time from error message (format: "tunggu 60 detik")
+        const match = errorMessage.match(/tunggu\s+(\d+)/i);
+        if (match) {
+          const waitSeconds = parseInt(match[1], 10);
+          setRateLimitCountdown(waitSeconds);
+          console.log(`⏳ Rate limit. Setting countdown to ${waitSeconds}s`);
+        }
       }
 
       setError(errorMessage);
@@ -267,11 +323,25 @@ const AIRecommendations = () => {
                   </div>
                 )}
 
-                <button type="submit" disabled={loading || cooldownRemaining > 0} className="btn btn-primary w-full text-lg py-4 shadow-lg shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed">
+                {rateLimitCountdown > 0 && (
+                  <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-center">
+                    <FontAwesomeIcon icon={faClock} className="text-red-600 mr-2" />
+                    <span className="text-sm text-red-800">
+                      Server rate limited. Please wait <strong>{rateLimitCountdown}s</strong> before trying again
+                    </span>
+                  </div>
+                )}
+
+                <button type="submit" disabled={loading || cooldownRemaining > 0 || rateLimitCountdown > 0} className="btn btn-primary w-full text-lg py-4 shadow-lg shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed">
                   {loading ? (
                     <>
                       <FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" />
                       Analyzing Database with AI...
+                    </>
+                  ) : rateLimitCountdown > 0 ? (
+                    <>
+                      <FontAwesomeIcon icon={faClock} className="mr-2" />
+                      Rate Limited - Wait {rateLimitCountdown}s
                     </>
                   ) : cooldownRemaining > 0 ? (
                     <>

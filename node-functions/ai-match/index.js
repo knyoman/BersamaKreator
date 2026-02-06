@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export async function onRequest(context) {
   // 1. CORS Headers
@@ -14,16 +14,16 @@ export async function onRequest(context) {
   }
 
   try {
-    // 2. Setup Clients (Supabase & Grok/xAI)
+    // 2. Setup Clients (Supabase & Gemini)
     const supabaseUrl = context.env?.SUPABASE_URL || context.env?.VITE_SUPABASE_URL || process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
     const supabaseKey = context.env?.SUPABASE_ANON_KEY || context.env?.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-    const xaiKey = context.env?.XAI_API_KEY || process.env.XAI_API_KEY;
+    const geminiKey = context.env?.GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
     // Validate all required environment variables
     const missingVars = [];
     if (!supabaseUrl) missingVars.push('SUPABASE_URL');
     if (!supabaseKey) missingVars.push('SUPABASE_ANON_KEY');
-    if (!xaiKey) missingVars.push('XAI_API_KEY');
+    if (!geminiKey) missingVars.push('GEMINI_API_KEY');
 
     if (missingVars.length > 0) {
       console.error(`❌ Missing environment variables: ${missingVars.join(', ')}`);
@@ -37,15 +37,13 @@ export async function onRequest(context) {
 
     console.log('✅ All environment variables configured');
     console.log('✅ Supabase URL:', supabaseUrl);
-    console.log('✅ XAI API Key configured:', xaiKey ? 'Yes' : 'No');
+    console.log('✅ Gemini API Key configured:', geminiKey ? 'Yes' : 'No');
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Initialize OpenAI Client but point to xAI Base URL
-    const openai = new OpenAI({
-      apiKey: xaiKey,
-      baseURL: 'https://api.x.ai/v1',
-    });
+    // Initialize Gemini Client
+    const genAI = new GoogleGenerativeAI(geminiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
 
     // 3. Parse Request
     let body;
@@ -74,7 +72,7 @@ export async function onRequest(context) {
 
     // 4. Step 1: Pre-filtering (Get Candidates from Database)
     // We filter by niche first to save tokens and ensure relevance
-    let query = supabase.from('influencers').select('*, users!inner(name, profile_image)').limit(10);
+    let query = supabase.from('influencers').select('*, users!inner(name, profile_image)').limit(5); // Reduced from 10 to 5 to save tokens
 
     if (niche) {
       // Basic fuzzy matching or exact match depending on data
@@ -105,10 +103,10 @@ export async function onRequest(context) {
 
     console.log(`✅ Found ${candidates.length} candidate influencers`);
 
-    // 5. Step 2: AI Analysis (OpenAI)
+    // 5. Step 2: AI Analysis (Gemini)
     // We ask AI to rank these candidates based on the Goal and Audience
     try {
-      console.log('🤖 Starting AI analysis with Grok...');
+      console.log('🤖 Starting AI analysis with Gemini...');
       const prompt = `
       Role: You are a Senior Influencer Marketing Strategist with 10 years of experience.
       
@@ -161,19 +159,22 @@ export async function onRequest(context) {
     `;
 
       const completion = await Promise.race([
-        openai.chat.completions.create({
-          messages: [
-            { role: 'system', content: 'You are a helpful AI assistant that outputs JSON only.' },
-            { role: 'user', content: prompt },
+        model.generateContent({
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt,
+                },
+              ],
+            },
           ],
-          model: 'grok-4-fast-non-reasoning',
-          response_format: { type: 'json_object' },
         }),
         new Promise((_, reject) => setTimeout(() => reject(new Error('API request timeout after 25 seconds')), 25000)),
       ]);
 
       console.log('✅ AI analysis completed');
-      const aiResult = JSON.parse(completion.choices[0].message.content);
+      const aiResult = JSON.parse(completion.response.text());
 
       // Merge AI results back with full influencer data
       const finalResults = aiResult.recommendations
@@ -209,12 +210,28 @@ export async function onRequest(context) {
       if (aiError.message.includes('timeout')) {
         errorMessage = 'AI service is taking too long. Please try again in a moment.';
         statusCode = 504;
-      } else if (aiError.status === 401) {
-        errorMessage = 'Authentication failed. Please check XAI_API_KEY.';
+      } else if (aiError.message.includes('401') || aiError.status === 401) {
+        errorMessage = 'Authentication failed. Please check GEMINI_API_KEY.';
         statusCode = 401;
-      } else if (aiError.status === 429) {
+      } else if (aiError.message.includes('429') || aiError.status === 429) {
         errorMessage = 'Too many requests. Please try again later.';
         statusCode = 429;
+
+        // Return response with Retry-After header for better client-side handling
+        return new Response(
+          JSON.stringify({
+            error: errorMessage,
+            retryAfter: 60, // Suggest retry after 60 seconds
+          }),
+          {
+            status: 429,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json',
+              'Retry-After': '60', // Standard HTTP header for rate limiting
+            },
+          },
+        );
       }
 
       return new Response(
