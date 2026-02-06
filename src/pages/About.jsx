@@ -83,7 +83,7 @@ const About = () => {
         <h2 className="text-4xl font-bold text-gray-900 mb-6 text-center">Our Story</h2>
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-lg text-gray-700 leading-relaxed mb-6">
-            BersamaKreator didirikan pada tahun 2024 dengan visi untuk memberdayakan UMKM Indonesia 
+            BersamaKreator didirikan pada tahun 2026 dengan visi untuk memberdayakan UMKM Indonesia 
             melalui influencer marketing yang efektif dan terjangkau.
           </p>
           <p className="text-lg text-gray-700 leading-relaxed">

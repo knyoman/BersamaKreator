@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { apiLogger } from '../utils/logger';
 
 // ============================================
 // INFLUENCERS
@@ -9,8 +10,8 @@ import { supabase } from './supabase';
  */
 export const getInfluencers = async (filters = {}) => {
   try {
-    console.log('[API] Fetching influencers with filters:', filters);
-    console.log('[API] Supabase client initialized:', !!supabase);
+    apiLogger.debug('Fetching influencers with filters:', filters);
+    apiLogger.debug('Supabase client initialized:', !!supabase);
     
     let query = supabase.from('v_influencer_profiles').select('*').order('rating_average', { ascending: false });
 
@@ -28,30 +29,22 @@ export const getInfluencers = async (filters = {}) => {
       query = query.eq('is_verified', filters.isVerified);
     }
 
-    console.log('[API] Executing query...');
+    apiLogger.debug('Executing query...');
     const { data, error } = await query;
 
-    console.log('[API] Query response:', { 
+    apiLogger.debug('Query response:', { 
       dataCount: data?.length, 
       hasError: !!error,
       errorDetails: error ? {
         message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint
+        code: error.code
       } : null
     });
 
     if (error) throw error;
     return { data, error: null };
   } catch (error) {
-    console.error('[API] Error fetching influencers:', {
-      message: error.message,
-      code: error.code,
-      details: error.details,
-      hint: error.hint,
-      fullError: error
-    });
+    apiLogger.error('Error fetching influencers:', error.message);
     return { data: null, error };
   }
 };
@@ -66,7 +59,7 @@ export const getInfluencerById = async (id) => {
     if (error) throw error;
     return { data, error: null };
   } catch (error) {
-    console.error('Error fetching influencer:', error);
+    apiLogger.error('Error fetching influencer:', error.message);
     return { data: null, error };
   }
 };
@@ -81,7 +74,7 @@ export const getInfluencerByUsername = async (username) => {
     if (error) throw error;
     return { data, error: null };
   } catch (error) {
-    console.error('Error fetching influencer by username:', error);
+    apiLogger.error('Error fetching influencer by username:', error.message);
     return { data: null, error };
   }
 };
@@ -110,7 +103,7 @@ export const getInfluencerReviews = async (influencerId) => {
     if (error) throw error;
     return { data, error: null };
   } catch (error) {
-    console.error('Error fetching reviews:', error);
+    apiLogger.error('Error fetching reviews:', error.message);
     return { data: null, error };
   }
 };
@@ -129,7 +122,7 @@ export const getOrders = async () => {
     if (error) throw error;
     return { data, error: null };
   } catch (error) {
-    console.error('Error fetching orders:', error);
+    apiLogger.error('Error fetching orders:', error.message);
     return { data: null, error };
   }
 };
@@ -167,13 +160,13 @@ export const createOrder = async (orderData) => {
 
     // 2. Fallback: Direct Supabase Insert (Client-side)
     // Used if Edge Function is not yet configured or is using placeholder
-    console.warn('Using Direct DB Insert (Edge Function not configured)');
+    apiLogger.warn('Using Direct DB Insert (Edge Function not configured)');
     const { data, error } = await supabase.from('orders').insert([orderData]).select().single();
 
     if (error) throw error;
     return { data, error: null };
   } catch (error) {
-    console.error('Error creating order:', error);
+    apiLogger.error('Error creating order:', error.message);
     return { data: null, error };
   }
 };
@@ -188,7 +181,7 @@ export const getOrderById = async (orderId) => {
     if (error) throw error;
     return { data, error: null };
   } catch (error) {
-    console.error('Error fetching order:', error);
+    apiLogger.error('Error fetching order:', error.message);
     return { data: null, error };
   }
 };
@@ -233,7 +226,7 @@ export const signUp = async (email, password, userData) => {
 
     return { data: authData, error: null };
   } catch (error) {
-    console.error('Error signing up:', error);
+    apiLogger.error('Error signing up:', error.message);
     return { data: null, error: { message: error.message || 'Sign up failed' } };
   }
 };
@@ -251,7 +244,7 @@ export const signIn = async (email, password) => {
     if (error) throw error;
     return { data, error: null };
   } catch (error) {
-    console.error('Error signing in:', error);
+    apiLogger.error('Error signing in:', error.message);
     return { data: null, error: { message: error.message || 'Sign in failed' } };
   }
 };
@@ -265,7 +258,7 @@ export const signOut = async () => {
     if (error) throw error;
     return { error: null };
   } catch (error) {
-    console.error('Error signing out:', error);
+    apiLogger.error('Error signing out:', error.message);
     return { error };
   }
 };
@@ -282,7 +275,7 @@ export const getCurrentUser = async () => {
     if (error) throw error;
     return { data: user, error: null };
   } catch (error) {
-    console.error('Error getting user:', error);
+    apiLogger.error('Error getting user:', error.message);
     return { data: null, error };
   }
 };
@@ -316,7 +309,7 @@ export const getUserProfile = async (userId) => {
 
     return { data: user, error: null };
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    apiLogger.error('Error fetching user profile:', error.message);
     return { data: null, error };
   }
 };
@@ -374,7 +367,7 @@ export const updateUserProfile = async (userId, updates) => {
 
     return { data: { success: true }, error: null };
   } catch (error) {
-    console.error('Error updating profile:', error);
+    apiLogger.error('Error updating profile:', error.message);
     return { data: null, error };
   }
 };
@@ -404,7 +397,7 @@ export const getPlatformStats = async () => {
       error: null,
     };
   } catch (error) {
-    console.error('Error fetching stats:', error);
+    apiLogger.error('Error fetching stats:', error.message);
     return { data: null, error };
   }
 };

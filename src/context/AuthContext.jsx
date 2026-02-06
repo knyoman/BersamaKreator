@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../services/supabase';
 import { getUserProfile } from '../services/api';
+import { authLogger } from '../utils/logger';
 
 const AuthContext = createContext();
 
@@ -26,13 +27,13 @@ export const AuthProvider = ({ children }) => {
           // Get user profile from database
           const { data: profile, error: profileError } = await getUserProfile(session.user.id);
           if (profileError) {
-            console.error('Error fetching profile:', profileError);
+            authLogger.error('Error fetching profile:', profileError.message);
           } else {
             setUserProfile(profile);
           }
         }
       } catch (err) {
-        console.error('Error checking user:', err);
+        authLogger.error('Error checking user:', err.message);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -53,7 +54,7 @@ export const AuthProvider = ({ children }) => {
         const { data: profile, error: profileError } = await getUserProfile(session.user.id);
         
         if (profileError) {
-          console.error('Error fetching profile in auth change:', profileError);
+          authLogger.error('Error fetching profile in auth change:', profileError.message);
           setError(profileError.message);
         } else {
           setUserProfile(profile);

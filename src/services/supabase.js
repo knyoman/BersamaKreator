@@ -10,17 +10,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Supabase configuration is missing. Please check .env file.');
 }
 
-// Warn if anon key doesn't look like a JWT token
+// Warn if anon key doesn't look like a JWT token (development only)
 if (!supabaseAnonKey.startsWith('eyJ')) {
   console.warn('⚠️ [Supabase] Anon key may be invalid - should start with "eyJ"');
-  console.warn('Current key starts with:', supabaseAnonKey.substring(0, 20) + '...');
 }
-
-console.log('✅ [Supabase] Configuration loaded:', {
-  url: supabaseUrl,
-  anonKeyLength: supabaseAnonKey?.length,
-  anonKeyStartsCorrectly: supabaseAnonKey.startsWith('eyJ'),
-});
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

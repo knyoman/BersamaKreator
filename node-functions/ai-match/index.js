@@ -149,7 +149,10 @@ export async function onRequest(context) {
 
   } catch (aiError) {
     console.error("OpenAI Error:", aiError);
-    return new Response(JSON.stringify({ error: "AI Analysis Failed: " + aiError.message }), { 
+    // Don't expose internal AI errors to client
+    return new Response(JSON.stringify({ 
+      error: "AI matching service is temporarily unavailable. Please try again later." 
+    }), { 
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } 
     });
   }

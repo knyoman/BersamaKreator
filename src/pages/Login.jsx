@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faLock, faSpinner, faUserCircle, faSignOutAlt, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { signIn, signOut } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { authLogger } from '../utils/logger';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -86,7 +87,7 @@ const Login = () => {
         setLoading(false);
       }
     } catch (err) {
-      console.error('Login error:', err);
+      authLogger.error('Login error:', err.message);
       let errorMessage = 'An error occurred during login'
       
       // Handle Network Errors (often caused by AdBlockers)

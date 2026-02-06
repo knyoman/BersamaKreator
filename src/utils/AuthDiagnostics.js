@@ -1,7 +1,19 @@
 import { supabase } from '../services/supabase';
 import { getCurrentUser, getUserProfile } from '../services/api';
 
+/**
+ * ⚠️ DEVELOPMENT ONLY: Auth & Database Diagnostics
+ * This file should NEVER run in production
+ */
+
+const isDevelopment = import.meta.env.MODE === 'development' || import.meta.env.DEV;
+
 export const runAuthTests = async () => {
+  if (!isDevelopment) {
+    console.warn('🚫 AuthDiagnostics is disabled in production mode');
+    return;
+  }
+
   console.group('🔍 Auth & Database Diagnostics');
   
   try {
@@ -13,7 +25,7 @@ export const runAuthTests = async () => {
     if (!url || !key) {
       console.error('❌ Missing Environment Variables');
     } else {
-      console.log('✅ Supabase URL:', url);
+      console.log('✅ Supabase URL configured');
       console.log('✅ Anon Key Status:', key.startsWith('eyJ') ? 'Valid Format' : 'Invalid Format');
     }
 
@@ -76,3 +88,4 @@ export const runAuthTests = async () => {
     console.groupEnd();
   }
 };
+
