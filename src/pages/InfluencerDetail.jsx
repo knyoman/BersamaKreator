@@ -15,10 +15,10 @@ import {
   faTiktok,
   faYoutube
 } from '@fortawesome/free-brands-svg-icons'
-import { getInfluencerById, getInfluencerReviews } from '../services/api'
+import { getInfluencerByUsername, getInfluencerReviews } from '../services/api'
 
 const InfluencerDetail = () => {
-  const { id } = useParams()
+  const { username } = useParams()
   const navigate = useNavigate()
   const [influencer, setInfluencer] = useState(null)
   const [reviews, setReviews] = useState([])
@@ -27,25 +27,26 @@ const InfluencerDetail = () => {
 
   useEffect(() => {
     fetchInfluencerData()
-  }, [id])
+  }, [username])
 
   const fetchInfluencerData = async () => {
     setLoading(true)
+    setError(null)
     
-    const [influencerResult, reviewsResult] = await Promise.all([
-      getInfluencerById(id),
-      getInfluencerReviews(id)
-    ])
+    // 1. Fetch Influencer by Username
+    const { data: infData, error: infError } = await getInfluencerByUsername(username)
 
-    if (influencerResult.error) {
-      setError(influencerResult.error.message)
-    } else {
-      setInfluencer(influencerResult.data)
+    if (infError || !infData) {
+      setError('Influencer not found')
+      setLoading(false)
+      return
     }
 
-    if (!reviewsResult.error) {
-      setReviews(reviewsResult.data || [])
-    }
+    setInfluencer(infData)
+
+    // 2. Fetch Reviews (using ID from fetched influencer)
+    const { data: revData } = await getInfluencerReviews(infData.id)
+    setReviews(revData || [])
 
     setLoading(false)
   }

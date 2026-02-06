@@ -72,6 +72,21 @@ export const getInfluencerById = async (id) => {
 };
 
 /**
+ * Get single influencer by Username
+ */
+export const getInfluencerByUsername = async (username) => {
+  try {
+    const { data, error } = await supabase.from('v_influencer_profiles').select('*').eq('username', username).single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error fetching influencer by username:', error);
+    return { data: null, error };
+  }
+};
+
+/**
  * Get reviews for an influencer
  */
 export const getInfluencerReviews = async (influencerId) => {
@@ -248,10 +263,29 @@ export const getCurrentUser = async () => {
  */
 export const getUserProfile = async (userId) => {
   try {
-    const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
+    // 1. Get base user data
+    const { data: user, error } = await supabase.from('users').select('*').eq('id', userId).single();
 
     if (error) throw error;
-    return { data, error: null };
+
+    // 2. If user is influencer, get extended profile
+    if (user.user_type === 'influencer') {
+      const { data: influencerData } = await supabase
+        .from('influencers')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      // Merge data (priority to influencer table for specific fields if any overlap)
+      if (influencerData) {
+        return { 
+          data: { ...user, ...influencerData }, 
+          error: null 
+        };
+      }
+    }
+
+    return { data: user, error: null };
   } catch (error) {
     console.error('Error fetching user profile:', error);
     return { data: null, error };
@@ -263,15 +297,59 @@ export const getUserProfile = async (userId) => {
  */
 export const updateUserProfile = async (userId, updates) => {
   try {
-    const { data, error } = await supabase.from('users').update(updates).eq('id', userId).select().single();
+    // 1. Separate data for 'users' and 'influencers' tables
+    const userData = {};
+    const influencerData = {};
 
-    if (error) throw error;
-    return { data, error: null };
+    const userFields = ['name', 'phone', 'profile_image'];
+    const influencerFields = ['username', 'niche', 'price_per_post', 'bio', 'instagram_url', 'tiktok_url', 'youtube_url'];
+
+    Object.keys(updates).forEach(key => {
+      if (userFields.includes(key)) userData[key] = updates[key];
+      if (influencerFields.includes(key)) influencerData[key] = updates[key];
+    });
+
+    // 2. Update 'users' table
+    if (Object.keys(userData).length > 0) {
+      const { error: userError } = await supabase
+        .from('users')
+        .update(userData)
+        .eq('id', userId);
+        
+      if (userError) throw userError;
+    }
+
+    // 3. Update 'influencers' table
+    if (Object.keys(influencerData).length > 0) {
+      // Check if influencer record exists first
+      const { data: existingInfluencer } = await supabase
+        .from('influencers')
+        .select('id')
+        .eq('user_id', userId)
+        .single();
+
+      if (existingInfluencer) {
+        const { error: infError } = await supabase
+          .from('influencers')
+          .update(influencerData)
+          .eq('user_id', userId);
+        if (infError) throw infError;
+      } else {
+        // Create if not exists (rare case, but safe)
+        const { error: insertError } = await supabase
+          .from('influencers')
+          .insert([{ ...influencerData, user_id: userId }]);
+        if (insertError) throw insertError;
+      }
+    }
+
+    return { data: { success: true }, error: null };
   } catch (error) {
     console.error('Error updating profile:', error);
     return { data: null, error };
   }
 };
+
 
 // ============================================
 // STATS & ANALYTICS

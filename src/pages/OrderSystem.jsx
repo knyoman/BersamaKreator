@@ -60,7 +60,7 @@ const OrderSystem = () => {
       return;
     }
 
-    const orderData = {
+    const preOrderData = {
       influencer_id: influencerId,
       sme_id: user.id,
       campaign_name: formData.campaign_name,
@@ -72,18 +72,14 @@ const OrderSystem = () => {
       payment_status: 'unpaid',
     };
 
-    const { data, error } = await createOrder(orderData);
-
-    if (error) {
-      setError(error.message);
-      setSubmitting(false);
-    } else {
-      setSuccess(true);
-      setSubmitting(false);
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
-    }
+    // Redirect to Payment Page
+    navigate('/payment', { 
+      state: { 
+        orderData: preOrderData,
+        influencer: influencer 
+      } 
+    });
+    setSubmitting(false);
   };
 
   const formatPrice = (price) => {

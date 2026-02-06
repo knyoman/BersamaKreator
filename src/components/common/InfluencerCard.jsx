@@ -104,7 +104,7 @@ const InfluencerCard = ({ influencer }) => {
 
       {/* CTA */}
       <Link 
-        to={`/influencer/${influencer.id}`}
+        to={`/influencer/${influencer.username}`}
         className="btn btn-primary w-full text-center text-sm"
       >
         View Profile

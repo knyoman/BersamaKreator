@@ -4,11 +4,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShoppingCart, faStar, faChartLine, faUser } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../../context/AuthContext';
 import { getOrders } from '../../services/api';
+import InfluencerEditProfile from './InfluencerEditProfile';
 
 const InfluencerDashboard = () => {
-  const { userProfile, user } = useAuth();
+  const { userProfile, user, setUserProfile } = useAuth(); // Added setUserProfile to refresh context
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showEditProfile, setShowEditProfile] = useState(false);
   const [stats, setStats] = useState({
     activeOrders: 0,
     completedOrders: 0,
@@ -17,7 +19,7 @@ const InfluencerDashboard = () => {
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [userProfile]); // Refresh orders when profile changes (e.g. price update)
 
   const fetchOrders = async () => {
     try {
@@ -45,6 +47,12 @@ const InfluencerDashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleProfileUpdate = () => {
+    // Reload page or re-fetch profile to show updates
+    // Ideally AuthContext should provide a refreshProfile function
+    window.location.reload(); 
   };
 
   return (
@@ -158,16 +166,35 @@ const InfluencerDashboard = () => {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Your Profile</h2>
           <div className="flex items-center gap-4">
-            <div className="bg-gray-200 rounded-full p-4">
-              <FontAwesomeIcon icon={faUser} className="text-3xl text-gray-600" />
+            <div className="bg-gray-200 rounded-full p-4 w-20 h-20 flex items-center justify-center overflow-hidden">
+               {userProfile?.profile_image ? (
+                 <img src={userProfile.profile_image} alt="Profile" className="w-full h-full object-cover" />
+               ) : (
+                 <FontAwesomeIcon icon={faUser} className="text-3xl text-gray-600" />
+               )}
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900">{userProfile?.name}</h3>
-              <p className="text-sm text-gray-600">{userProfile?.email}</p>
+              <h3 className="font-semibold text-gray-900 text-lg">{userProfile?.name}</h3>
+              <p className="text-gray-500">@{userProfile?.username || 'user'}</p>
+              <p className="text-sm text-gray-400 mt-1">{userProfile?.email}</p>
             </div>
-            <button className="btn btn-outline">Edit Profile</button>
+            <button 
+              onClick={() => setShowEditProfile(true)}
+              className="btn btn-outline"
+            >
+              Edit Profile
+            </button>
           </div>
         </div>
+
+        {/* Edit Profile Modal */}
+        {showEditProfile && (
+          <InfluencerEditProfile 
+            userProfile={userProfile} 
+            onClose={() => setShowEditProfile(false)}
+            onUpdateSuccess={handleProfileUpdate}
+          />
+        )}
       </div>
     </div>
   );

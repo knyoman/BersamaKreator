@@ -13,6 +13,8 @@ import AIRecommendations from './pages/AIRecommendations';
 import Terms from './pages/Terms';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import PaymentPage from './pages/PaymentPage';
+import PaymentSuccess from './pages/PaymentSuccess';
 import { runAuthTests } from './utils/AuthDiagnostics';
 
 function App() {
@@ -30,13 +32,15 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<About />} />
           <Route path="/influencers" element={<InfluencerListing />} />
-          <Route path="/influencer/:id" element={<InfluencerDetail />} />
+          <Route path="/influencer/:username" element={<InfluencerDetail />} />
           <Route path="/dashboard" element={<ProtectedRoute element={<DashboardRouter />} />} />
           <Route path="/order/:influencerId" element={<ProtectedRoute element={<OrderSystem />} requiredRole="sme" />} />
           <Route path="/ai-recommendations" element={<AIRecommendations />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/payment" element={<ProtectedRoute element={<PaymentPage />} requiredRole="sme" />} />
+          <Route path="/payment/success" element={<ProtectedRoute element={<PaymentSuccess />} requiredRole="sme" />} />
         </Routes>
       </main>
       <Footer />
