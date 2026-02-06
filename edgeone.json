@@ -8,12 +8,24 @@
   },
   "functions": {
     "directory": "node-functions",
-    "runtime": "nodejs"
+    "runtime": "nodejs",
+    "routes": [
+      {
+        "path": "/ai-match",
+        "method": ["POST", "OPTIONS"],
+        "function": "ai-match"
+      },
+      {
+        "path": "/create-order",
+        "method": ["POST", "OPTIONS"],
+        "function": "create-order"
+      }
+    ]
   },
-  "caches" : [
+  "caches": [
     {
-        "source" : "/images/*",
-        "cacheTtl" : 86400
+      "source": "/images/*",
+      "cacheTtl": 86400
     }
   ]
 }
