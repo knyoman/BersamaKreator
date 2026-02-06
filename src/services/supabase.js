@@ -22,5 +22,12 @@ console.log('✅ [Supabase] Configuration loaded:', {
   anonKeyStartsCorrectly: supabaseAnonKey.startsWith('eyJ'),
 });
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: sessionStorage, // Persist session on reload, but clear on tab close
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+  },
+})
 
