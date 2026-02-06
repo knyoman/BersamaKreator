@@ -21,10 +21,21 @@ const InfluencerListing = () => {
 
   const fetchInfluencers = async (appliedFilters = {}) => {
     setLoading(true)
+    setError(null) // Reset error state
+    
+    console.log('[InfluencerListing] Fetching influencers with filters:', appliedFilters);
+    
     const { data, error } = await getInfluencers(appliedFilters)
     
+    console.log('[InfluencerListing] Fetch result:', { 
+      dataCount: data?.length, 
+      hasError: !!error 
+    });
+    
     if (error) {
-      setError(error.message)
+      const errorMessage = error.message || 'Failed to fetch influencers';
+      console.error('[InfluencerListing] Error:', error);
+      setError(errorMessage)
     } else {
       setInfluencers(data || [])
     }
@@ -170,10 +181,22 @@ const InfluencerListing = () => {
           </div>
         ) : error ? (
           <div className="text-center py-16">
-            <p className="text-red-600">{error}</p>
-            <button onClick={() => fetchInfluencers()} className="btn btn-primary mt-4">
-              Try Again
-            </button>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto">
+              <p className="text-red-600 font-semibold mb-2">Error Loading Influencers</p>
+              <p className="text-red-700 text-sm mb-4">{error}</p>
+              <div className="text-xs text-gray-600 mb-4 text-left">
+                <p className="font-semibold mb-1">Troubleshooting tips:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Check browser console for detailed error logs</li>
+                  <li>Verify Supabase credentials are correct in .env file</li>
+                  <li>Ensure database view 'v_influencer_profiles' exists</li>
+                  <li>Check if there's any data in the influencers table</li>
+                </ul>
+              </div>
+              <button onClick={() => fetchInfluencers()} className="btn btn-primary">
+                Try Again
+              </button>
+            </div>
           </div>
         ) : influencers.length === 0 ? (
           <div className="text-center py-16">

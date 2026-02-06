@@ -1,99 +1,105 @@
-import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faSpinner, faCheckCircle, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
-import { getInfluencerById, createOrder } from '../services/api'
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSpinner, faCheckCircle, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { getInfluencerById, createOrder } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const OrderSystem = () => {
-  const { influencerId } = useParams()
-  const navigate = useNavigate()
-  const [influencer, setInfluencer] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [error, setError] = useState(null)
+  const { influencerId } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [influencer, setInfluencer] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(null);
 
   const [formData, setFormData] = useState({
     campaign_name: '',
     campaign_description: '',
     deadline: '',
     total_price: '',
-    notes: ''
-  })
+    notes: '',
+  });
 
   useEffect(() => {
-    fetchInfluencer()
-  }, [influencerId])
+    fetchInfluencer();
+  }, [influencerId]);
 
   const fetchInfluencer = async () => {
-    const { data, error } = await getInfluencerById(influencerId)
+    const { data, error } = await getInfluencerById(influencerId);
     if (error) {
-      setError(error.message)
+      setError(error.message);
     } else {
-      setInfluencer(data)
-      setFormData(prev => ({
+      setInfluencer(data);
+      setFormData((prev) => ({
         ...prev,
-        total_price: data.price_per_post
-      }))
+        total_price: data.price_per_post,
+      }));
     }
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
-  }
+      [name]: value,
+    }));
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setSubmitting(true)
-    setError(null)
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
 
-    // Note: In production, you would get the actual user ID from auth
-    // For now, using a placeholder SME ID
+    if (!user) {
+      setError('Please login to create an order');
+      setSubmitting(false);
+      return;
+    }
+
     const orderData = {
       influencer_id: influencerId,
-      sme_id: 'b2c3d4e5-f6a7-8901-bcde-f12345678901', // Placeholder - should come from auth
+      sme_id: user.id,
       campaign_name: formData.campaign_name,
       campaign_description: formData.campaign_description,
       total_price: parseFloat(formData.total_price),
       deadline: formData.deadline,
       notes: formData.notes,
       order_status: 'pending',
-      payment_status: 'unpaid'
-    }
+      payment_status: 'unpaid',
+    };
 
-    const { data, error } = await createOrder(orderData)
+    const { data, error } = await createOrder(orderData);
 
     if (error) {
-      setError(error.message)
-      setSubmitting(false)
+      setError(error.message);
+      setSubmitting(false);
     } else {
-      setSuccess(true)
-      setSubmitting(false)
+      setSuccess(true);
+      setSubmitting(false);
       setTimeout(() => {
-        navigate('/')
-      }, 2000)
+        navigate('/');
+      }, 2000);
     }
-  }
+  };
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(price)
-  }
+      minimumFractionDigits: 0,
+    }).format(price);
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <FontAwesomeIcon icon={faSpinner} className="text-4xl text-gray-900 animate-spin" />
       </div>
-    )
+    );
   }
 
   if (!influencer) {
@@ -106,7 +112,7 @@ const OrderSystem = () => {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   if (success) {
@@ -117,14 +123,11 @@ const OrderSystem = () => {
             <FontAwesomeIcon icon={faCheckCircle} className="text-4xl text-green-600" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Order Created Successfully!</h2>
-          <p className="text-gray-600 mb-6">
-            Your booking request has been sent to {influencer.name}. 
-            They will review and respond soon.
-          </p>
+          <p className="text-gray-600 mb-6">Your booking request has been sent to {influencer.name}. They will review and respond soon.</p>
           <p className="text-sm text-gray-500">Redirecting to homepage...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -146,13 +149,7 @@ const OrderSystem = () => {
           <div className="p-6 bg-gray-50 border-b border-gray-100">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                {influencer.profile_image ? (
-                  <img src={influencer.profile_image} alt={influencer.name} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-2xl text-gray-600 font-bold">
-                    {influencer.name?.charAt(0)}
-                  </span>
-                )}
+                {influencer.profile_image ? <img src={influencer.profile_image} alt={influencer.name} className="w-full h-full object-cover" /> : <span className="text-2xl text-gray-600 font-bold">{influencer.name?.charAt(0)}</span>}
               </div>
               <div>
                 <h3 className="font-bold text-gray-900">{influencer.name}</h3>
@@ -164,17 +161,11 @@ const OrderSystem = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                {error}
-              </div>
-            )}
+            {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">{error}</div>}
 
             {/* Campaign Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Campaign Name *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Campaign Name *</label>
               <input
                 type="text"
                 name="campaign_name"
@@ -188,9 +179,7 @@ const OrderSystem = () => {
 
             {/* Campaign Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Campaign Description *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Campaign Description *</label>
               <textarea
                 name="campaign_description"
                 value={formData.campaign_description}
@@ -206,9 +195,7 @@ const OrderSystem = () => {
             <div className="grid md:grid-cols-2 gap-6">
               {/* Deadline */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Deadline *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Deadline *</label>
                 <input
                   type="date"
                   name="deadline"
@@ -222,9 +209,7 @@ const OrderSystem = () => {
 
               {/* Price */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Total Price (IDR) *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Total Price (IDR) *</label>
                 <input
                   type="number"
                   name="total_price"
@@ -235,17 +220,13 @@ const OrderSystem = () => {
                   step={1000}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Recommended: {formatPrice(influencer.price_per_post)}
-                </p>
+                <p className="text-xs text-gray-500 mt-1">Recommended: {formatPrice(influencer.price_per_post)}</p>
               </div>
             </div>
 
             {/* Additional Notes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Additional Notes (Optional)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Additional Notes (Optional)</label>
               <textarea
                 name="notes"
                 value={formData.notes}
@@ -258,11 +239,7 @@ const OrderSystem = () => {
 
             {/* Submit Button */}
             <div className="pt-4">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="btn btn-primary w-full text-lg py-4"
-              >
+              <button type="submit" disabled={submitting} className="btn btn-primary w-full text-lg py-4">
                 {submitting ? (
                   <>
                     <FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" />
@@ -272,15 +249,13 @@ const OrderSystem = () => {
                   'Submit Order Request'
                 )}
               </button>
-              <p className="text-xs text-gray-500 text-center mt-3">
-                By submitting, you agree to our Terms & Conditions
-              </p>
+              <p className="text-xs text-gray-500 text-center mt-3">By submitting, you agree to our Terms & Conditions</p>
             </div>
           </form>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default OrderSystem
+export default OrderSystem;
