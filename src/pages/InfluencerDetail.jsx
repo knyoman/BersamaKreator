@@ -15,13 +15,27 @@ import {
   faTiktok,
   faYoutube
 } from '@fortawesome/free-brands-svg-icons'
-import { getInfluencerByUsername, getInfluencerReviews } from '../services/api'
+import InfluencerAvailabilityPreview from '../components/influencer/InfluencerAvailabilityPreview'
+import InfluencerPortfolioShowcase from '../components/influencer/InfluencerPortfolioShowcase'
+import InfluencerPricingPackagesShowcase from '../components/influencer/InfluencerPricingPackagesShowcase'
+import { addDays, toDateKey } from '../features/influencer/availability'
+import {
+  getInfluencerAvailability,
+  getInfluencerByUsername,
+  getInfluencerPortfolioItems,
+  getInfluencerPricingPackages,
+  getInfluencerReviews,
+} from '../services/api'
 
 const InfluencerDetail = () => {
   const { username } = useParams()
   const navigate = useNavigate()
   const [influencer, setInfluencer] = useState(null)
   const [reviews, setReviews] = useState([])
+  const [portfolioItems, setPortfolioItems] = useState([])
+  const [pricingPackages, setPricingPackages] = useState([])
+  const [availabilityItems, setAvailabilityItems] = useState([])
+  const [availabilityLoading, setAvailabilityLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -37,16 +51,37 @@ const InfluencerDetail = () => {
     const { data: infData, error: infError } = await getInfluencerByUsername(username)
 
     if (infError || !infData) {
-      setError('Influencer not found')
+      setError('Influencer tidak ditemukan')
       setLoading(false)
       return
     }
 
     setInfluencer(infData)
 
-    // 2. Fetch Reviews (using ID from fetched influencer)
-    const { data: revData } = await getInfluencerReviews(infData.id)
+    const today = new Date()
+    const availabilityRange = {
+      startDate: toDateKey(today),
+      endDate: toDateKey(addDays(today, 13)),
+    }
+
+    setAvailabilityLoading(true)
+    const [
+      { data: revData },
+      { data: portfolioData },
+      { data: availabilityData },
+      { data: pricingPackagesData },
+    ] = await Promise.all([
+      getInfluencerReviews(infData.id),
+      getInfluencerPortfolioItems(infData.id),
+      getInfluencerAvailability(infData.id, availabilityRange),
+      getInfluencerPricingPackages(infData.id),
+    ])
+
     setReviews(revData || [])
+    setPortfolioItems(portfolioData || [])
+    setAvailabilityItems(availabilityData || [])
+    setPricingPackages(pricingPackagesData || [])
+    setAvailabilityLoading(false)
 
     setLoading(false)
   }
@@ -77,9 +112,9 @@ const InfluencerDetail = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Influencer not found'}</p>
+          <p className="text-red-600 mb-4">{error || 'Influencer tidak ditemukan'}</p>
           <Link to="/influencers" className="btn btn-primary">
-            Back to Influencers
+            Kembali ke Daftar Influencer
           </Link>
         </div>
       </div>
@@ -93,7 +128,7 @@ const InfluencerDetail = () => {
         <div className="container-custom py-8">
           <button onClick={() => navigate(-1)} className="flex items-center text-gray-600 hover:text-gray-900 mb-6">
             <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
-            Back
+            Kembali
           </button>
 
           <div className="flex flex-col md:flex-row gap-8">
@@ -113,7 +148,7 @@ const InfluencerDetail = () => {
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-3xl md:text-4xl font-bold text-gray-900">{influencer.name}</h1>
                 {influencer.is_verified && (
-                  <FontAwesomeIcon icon={faCheckCircle} className="text-primary-600 text-2xl" title="Verified" />
+                  <FontAwesomeIcon icon={faCheckCircle} className="text-primary-600 text-2xl" title="Terverifikasi" />
                 )}
               </div>
               <p className="text-lg text-gray-600 mb-4">@{influencer.username}</p>
@@ -123,24 +158,24 @@ const InfluencerDetail = () => {
                 <div>
                   <div className="flex items-center text-gray-600 text-sm mb-1">
                     <FontAwesomeIcon icon={faUsers} className="mr-2" />
-                    Followers
+                    Pengikut
                   </div>
                   <div className="text-2xl font-bold text-gray-900">{formatNumber(influencer.followers_count)}</div>
                 </div>
                 <div>
                   <div className="flex items-center text-gray-600 text-sm mb-1">
                     <FontAwesomeIcon icon={faChartLine} className="mr-2" />
-                    Engagement
+                    Interaksi
                   </div>
                   <div className="text-2xl font-bold text-gray-900">{influencer.engagement_rate}%</div>
                 </div>
                 <div>
                   <div className="flex items-center text-gray-600 text-sm mb-1">
                     <FontAwesomeIcon icon={faStar} className="mr-2" />
-                    Rating
+                    Penilaian
                   </div>
                   <div className="text-2xl font-bold text-gray-900">
-                    {influencer.rating_average > 0 ? influencer.rating_average.toFixed(1) : 'New'}
+                    {influencer.rating_average > 0 ? influencer.rating_average.toFixed(1) : 'Baru'}
                   </div>
                 </div>
               </div>
@@ -175,15 +210,15 @@ const InfluencerDetail = () => {
             {/* CTA Card */}
             <div className="w-full md:w-80 bg-white border border-gray-200 rounded-xl p-6">
               <div className="mb-4">
-                <div className="text-sm text-gray-600 mb-1">Price per post</div>
+                <div className="text-sm text-gray-600 mb-1">Harga per posting</div>
                 <div className="text-3xl font-bold text-gray-900">{formatPrice(influencer.price_per_post)}</div>
               </div>
               <Link to={`/order/${influencer.id}`} className="btn btn-primary w-full text-center">
                 <FontAwesomeIcon icon={faShoppingCart} className="mr-2" />
-                Book Now
+                Pesan Sekarang
               </Link>
               <div className="mt-4 text-xs text-gray-600 text-center">
-                {influencer.total_orders} completed orders
+                {influencer.total_orders} pesanan selesai
               </div>
             </div>
           </div>
@@ -198,23 +233,35 @@ const InfluencerDetail = () => {
             {/* Bio */}
             {influencer.bio && (
               <div className="bg-white rounded-xl p-6 border border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">About</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Tentang</h2>
                 <p className="text-gray-700 leading-relaxed">{influencer.bio}</p>
               </div>
             )}
 
+            <InfluencerAvailabilityPreview
+              items={availabilityItems}
+              loading={availabilityLoading}
+            />
+
+            <InfluencerPricingPackagesShowcase
+              influencerId={influencer.id}
+              packages={pricingPackages}
+            />
+
+            <InfluencerPortfolioShowcase items={portfolioItems} />
+
             {/* Reviews */}
             <div className="bg-white rounded-xl p-6 border border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Reviews ({reviews.length})</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Ulasan ({reviews.length})</h2>
               
               {reviews.length === 0 ? (
-                <p className="text-gray-600">No reviews yet</p>
+                <p className="text-gray-600">Belum ada ulasan</p>
               ) : (
                 <div className="space-y-4">
                   {reviews.map((review) => (
                     <div key={review.id} className="border-b border-gray-100 last:border-0 pb-4 last:pb-0">
                       <div className="flex items-center justify-between mb-2">
-                        <div className="font-medium text-gray-900">{review.order?.sme?.name || 'Anonymous'}</div>
+                        <div className="font-medium text-gray-900">{review.order?.sme?.name || 'Anonim'}</div>
                         <div className="flex items-center">
                           {[...Array(5)].map((_, i) => (
                             <FontAwesomeIcon
@@ -230,7 +277,7 @@ const InfluencerDetail = () => {
                       )}
                       {review.response && (
                         <div className="mt-2 pl-4 border-l-2 border-gray-200">
-                          <div className="text-sm font-medium text-gray-900 mb-1">Response:</div>
+                          <div className="text-sm font-medium text-gray-900 mb-1">Respons:</div>
                           <p className="text-sm text-gray-600">{review.response}</p>
                         </div>
                       )}
@@ -251,22 +298,22 @@ const InfluencerDetail = () => {
           {/* Right Column - Stats */}
           <div>
             <div className="bg-white rounded-xl p-6 border border-gray-100 sticky top-24">
-              <h3 className="font-bold text-gray-900 mb-4">Performance Stats</h3>
+              <h3 className="font-bold text-gray-900 mb-4">Statistik Performa</h3>
               
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Total Orders</span>
+                  <span className="text-gray-600">Total Pesanan</span>
                   <span className="font-bold text-gray-900">{influencer.total_orders}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Avg Rating</span>
+                  <span className="text-gray-600">Rata-rata Penilaian</span>
                   <span className="font-bold text-gray-900">
-                    {influencer.rating_average > 0 ? influencer.rating_average.toFixed(1) : 'N/A'}
+                    {influencer.rating_average > 0 ? influencer.rating_average.toFixed(1) : '-'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Response Rate</span>
-                  <span className="font-bold text-gray-900">Fast</span>
+                  <span className="text-gray-600">Kecepatan Respons</span>
+                  <span className="font-bold text-gray-900">Cepat</span>
                 </div>
               </div>
             </div>

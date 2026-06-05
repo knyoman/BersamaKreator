@@ -43,10 +43,10 @@ const About = () => {
       <div className="bg-white border-b border-gray-100">
         <div className="container-custom py-16 text-center">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            About BersamaKreator
+            Tentang BersamaKreator
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Indonesia's #1 platform for connecting SMEs with nano influencers
+            Platform #1 di Indonesia untuk menghubungkan UMKM dengan nano influencer
           </p>
         </div>
       </div>
@@ -54,11 +54,11 @@ const About = () => {
       {/* Mission */}
       <div className="container-custom section-padding">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6 text-center">Our Mission</h2>
+          <h2 className="text-4xl font-bold text-gray-900 mb-6 text-center">Misi Kami</h2>
           <p className="text-lg text-gray-700 leading-relaxed text-center mb-12">
-            Kami percaya bahwa setiap UMKM layak memiliki akses ke influencer marketing yang efektif dan terjangkau. 
+            Kami percaya bahwa setiap UMKM layak memiliki akses ke pemasaran influencer yang efektif dan terjangkau.
             BersamaKreator hadir untuk menjembatani kesenjangan antara bisnis kecil dengan nano influencer lokal 
-            yang memiliki engagement tinggi dan audience yang relevan.
+            yang memiliki interaksi tinggi dan audiens yang relevan.
           </p>
 
           <div className="grid md:grid-cols-4 gap-8 mt-12">
@@ -66,22 +66,22 @@ const About = () => {
               { 
                 icon: faUsers, 
                 number: loading ? '...' : formatNumber(stats.influencersCount), 
-                label: 'Influencers' 
+                label: 'Influencer'
               },
               { 
                 icon: faHandshake, 
                 number: loading ? '...' : formatNumber(stats.smeCount), 
-                label: 'SME Partners' 
+                label: 'Mitra UMKM'
               },
               { 
                 icon: faChartLine, 
                 number: loading ? '...' : `${stats.successRate}%`, 
-                label: 'Success Rate' 
+                label: 'Tingkat Sukses'
               },
               { 
                 icon: faRocket, 
                 number: '5K+', // Keep static or use simulated
-                label: 'Campaigns' 
+                label: 'Kampanye'
               }
             ].map((stat, index) => (
               <div key={index} className="text-center">
@@ -99,25 +99,25 @@ const About = () => {
       {/* Why Us */}
       <div className="bg-white">
         <div className="container-custom section-padding">
-          <h2 className="text-4xl font-bold text-gray-900 mb-12 text-center">Why Choose BersamaKreator</h2>
+          <h2 className="text-4xl font-bold text-gray-900 mb-12 text-center">Kenapa Memilih BersamaKreator</h2>
           
           <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
             {[
               {
-                title: 'Budget-Friendly',
-                description: 'Harga yang terjangkau untuk UMKM dengan budget terbatas. Mulai dari Rp 500.000 per campaign.'
+                title: 'Ramah Anggaran',
+                description: 'Harga yang terjangkau untuk UMKM dengan anggaran terbatas. Mulai dari Rp 500.000 per kampanye.'
               },
               {
-                title: 'Local Focus',
+                title: 'Fokus Lokal',
                 description: 'Fokus pada nano influencer lokal Indonesia yang memahami pasar dan culture lokal.'
               },
               {
-                title: 'High Engagement',
-                description: 'Nano influencer memiliki engagement rate lebih tinggi dibanding macro influencer.'
+                title: 'Engagement Tinggi',
+                description: 'Nano influencer memiliki tingkat interaksi lebih tinggi dibanding influencer makro.'
               },
               {
-                title: 'Easy to Use',
-                description: 'Platform yang user-friendly dengan proses booking yang sederhana dan cepat.'
+                title: 'Mudah Digunakan',
+                description: 'Platform yang mudah digunakan dengan proses pemesanan yang sederhana dan cepat.'
               }
             ].map((item, index) => (
               <div key={index}>
@@ -131,16 +131,16 @@ const About = () => {
 
       {/* Team */}
       <div className="container-custom section-padding">
-        <h2 className="text-4xl font-bold text-gray-900 mb-6 text-center">Our Story</h2>
+        <h2 className="text-4xl font-bold text-gray-900 mb-6 text-center">Cerita Kami</h2>
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-lg text-gray-700 leading-relaxed mb-6">
             BersamaKreator didirikan pada tahun 2026 dengan visi untuk memberdayakan UMKM Indonesia 
-            melalui influencer marketing yang efektif dan terjangkau.
+            melalui pemasaran influencer yang efektif dan terjangkau.
           </p>
           <p className="text-lg text-gray-700 leading-relaxed">
-            Kami memahami bahwa tidak semua bisnis memiliki budget besar untuk marketing, 
+            Kami memahami bahwa tidak semua bisnis memiliki anggaran besar untuk pemasaran,
             namun setiap bisnis berhak untuk berkembang. Melalui BersamaKreator, kami menghubungkan 
-            UMKM dengan nano influencer yang tepat untuk mencapai target audience mereka.
+            UMKM dengan nano influencer yang tepat untuk mencapai target audiens mereka.
           </p>
         </div>
       </div>

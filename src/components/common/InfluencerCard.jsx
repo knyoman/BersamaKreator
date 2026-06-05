@@ -46,7 +46,7 @@ const InfluencerCard = ({ influencer }) => {
           </div>
         </div>
         {influencer.is_verified && (
-          <FontAwesomeIcon icon={faCheckCircle} className="text-primary-600" title="Verified" />
+          <FontAwesomeIcon icon={faCheckCircle} className="text-primary-600" title="Terverifikasi" />
         )}
       </div>
 
@@ -62,17 +62,17 @@ const InfluencerCard = ({ influencer }) => {
         <div>
           <div className="flex items-center text-gray-600 text-sm mb-1">
             <FontAwesomeIcon icon={faUsers} className="mr-2" />
-            Followers
+            Pengikut
           </div>
           <div className="font-bold text-gray-900">{formatNumber(influencer.followers_count)}</div>
         </div>
         <div>
           <div className="flex items-center text-gray-600 text-sm mb-1">
             <FontAwesomeIcon icon={faStar} className="mr-2" />
-            Rating
+            Penilaian
           </div>
           <div className="font-bold text-gray-900">
-            {influencer.rating_average > 0 ? influencer.rating_average.toFixed(1) : 'New'}
+            {influencer.rating_average > 0 ? influencer.rating_average.toFixed(1) : 'Baru'}
           </div>
         </div>
       </div>
@@ -98,7 +98,7 @@ const InfluencerCard = ({ influencer }) => {
 
       {/* Price */}
       <div className="mb-4 pb-4 border-b border-gray-100">
-        <div className="text-sm text-gray-600">Price per post</div>
+        <div className="text-sm text-gray-600">Harga per posting</div>
         <div className="text-xl font-bold text-gray-900">{formatPrice(influencer.price_per_post)}</div>
       </div>
 
@@ -107,7 +107,7 @@ const InfluencerCard = ({ influencer }) => {
         to={`/influencer/${influencer.username}`}
         className="btn btn-primary w-full text-center text-sm"
       >
-        View Profile
+        Lihat Profil
       </Link>
     </div>
   )

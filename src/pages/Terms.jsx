@@ -3,11 +3,11 @@ const Terms = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container-custom py-16">
         <div className="max-w-4xl mx-auto bg-white rounded-xl p-8 md:p-12 border border-gray-100">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">Terms & Conditions</h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">Syarat & Ketentuan</h1>
           
           <div className="space-y-8 text-gray-700">
             <section>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Acceptance of Terms</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Penerimaan Syarat</h2>
               <p className="leading-relaxed">
                 Dengan mengakses dan menggunakan platform BersamaKreator, Anda setuju untuk terikat dengan syarat dan ketentuan berikut. 
                 Jika Anda tidak setuju dengan syarat ini, mohon untuk tidak menggunakan layanan kami.
@@ -17,12 +17,12 @@ const Terms = () => {
             <section>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">2. Layanan BersamaKreator</h2>
               <p className="leading-relaxed mb-4">
-                BersamaKreator adalah platform marketplace yang menghubungkan SME (Small Medium Enterprise) dengan nano influencer 
-                untuk keperluan kampanye digital marketing.
+                BersamaKreator adalah platform marketplace yang menghubungkan UMKM dengan nano influencer
+                untuk kebutuhan kampanye pemasaran digital.
               </p>
               <p className="leading-relaxed">
                 Kami menyediakan platform untuk memfasilitasi koneksi antara kedua pihak, namun kami tidak bertanggung jawab 
-                atas kualitas layanan yang diberikan oleh influencer atau hasil dari kampanye marketing.
+                atas kualitas layanan yang diberikan oleh influencer atau hasil dari kampanye pemasaran.
               </p>
             </section>
 
@@ -40,7 +40,7 @@ const Terms = () => {
             <section>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">4. Pembayaran dan Transaksi</h2>
               <p className="leading-relaxed mb-4">
-                Semua transaksi pembayaran antara SME dan influencer dilakukan melalui kesepakatan langsung antara kedua belah pihak. 
+                Semua transaksi pembayaran antara UMKM dan influencer dilakukan melalui kesepakatan langsung antara kedua belah pihak.
                 BersamaKreator tidak memproses pembayaran dan tidak bertanggung jawab atas sengketa pembayaran.
               </p>
               <p className="leading-relaxed">
@@ -88,14 +88,14 @@ const Terms = () => {
               </p>
               <p className="mt-4 font-medium">
                 Email: support@bersamakreator.id<br />
-                Phone: +62 812-3456-7890
+                Telepon: +62 812-3456-7890
               </p>
             </section>
           </div>
 
           <div className="mt-12 pt-8 border-t border-gray-200">
             <p className="text-sm text-gray-600">
-              Last updated: February 2026
+              Terakhir diperbarui: Februari 2026
             </p>
           </div>
         </div>

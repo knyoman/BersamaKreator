@@ -10,7 +10,7 @@
 
 @layer components {
   .btn {
-    @apply px-6 py-3 rounded-lg font-medium transition-all duration-200;
+    @apply px-4 py-2 rounded-md text-sm font-semibold transition-all duration-200;
   }
 
   .btn-primary {
@@ -22,11 +22,11 @@
   }
 
   .btn-outline {
-    @apply border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white;
+    @apply border border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white;
   }
 
   .card {
-    @apply bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100;
+    @apply bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100;
   }
 
   .container-custom {
@@ -34,6 +34,123 @@
   }
 
   .section-padding {
-    @apply py-16 md:py-24;
+    @apply py-10 md:py-14;
+  }
+
+  /* Custom Scrollbar Modern */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-700 rounded-full;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500;
+  }
+}
+
+.dashboard-content {
+  font-size: 0.9375rem;
+}
+
+.dashboard-content :where(.space-y-6) > :not([hidden]) ~ :not([hidden]),
+.ai-assistant-scope :where(.space-y-6) > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1rem;
+}
+
+.dashboard-content :where(.gap-6),
+.ai-assistant-scope :where(.gap-6) {
+  gap: 1rem;
+}
+
+.dashboard-content :where(.p-6),
+.ai-assistant-scope :where(.p-6) {
+  padding: 1rem;
+}
+
+.dashboard-content :where(.px-6),
+.ai-assistant-scope :where(.px-6) {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.dashboard-content :where(.px-5),
+.ai-assistant-scope :where(.px-5) {
+  padding-left: 0.875rem;
+  padding-right: 0.875rem;
+}
+
+.dashboard-content :where(.px-4),
+.ai-assistant-scope :where(.px-4) {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.dashboard-content :where(.py-3),
+.ai-assistant-scope :where(.py-3) {
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+}
+
+.dashboard-content :where(.py-4),
+.ai-assistant-scope :where(.py-4) {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.dashboard-content :where(.text-3xl),
+.ai-assistant-scope :where(.text-3xl) {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+.dashboard-content :where(.text-2xl),
+.ai-assistant-scope :where(.text-2xl) {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.dashboard-content :where(.text-xl),
+.ai-assistant-scope :where(.text-xl) {
+  font-size: 1.0625rem;
+  line-height: 1.5rem;
+}
+
+.dashboard-content :where(.w-12.h-12),
+.dashboard-content :where(.w-11.h-11),
+.ai-assistant-scope :where(.w-12.h-12),
+.ai-assistant-scope :where(.w-11.h-11) {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.dashboard-content :where(input, select, textarea),
+.ai-assistant-scope :where(input, select, textarea) {
+  font-size: 0.875rem;
+}
+
+.ai-tool-title,
+.ai-tool-description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+}
+
+.ai-tool-title {
+  -webkit-line-clamp: 1;
+}
+
+.ai-tool-description {
+  -webkit-line-clamp: 2;
+}
+
+@media (min-width: 640px) {
+  .dashboard-content :where(.p-6),
+  .ai-assistant-scope :where(.p-6) {
+    padding: 1.25rem;
   }
 }

@@ -38,35 +38,35 @@ const PaymentPage = () => {
       id: 'bca_va',
       name: 'BCA Virtual Account',
       icon: faBuildingColumns,
-      description: 'Automatic verification',
+      description: 'Verifikasi otomatis',
       color: 'bg-blue-600'
     },
     {
       id: 'mandiri_va',
       name: 'Mandiri Virtual Account',
       icon: faBuildingColumns,
-      description: 'Automatic verification',
+      description: 'Verifikasi otomatis',
       color: 'bg-yellow-600'
     },
     {
       id: 'gopay',
       name: 'GoPay',
       icon: faWallet,
-      description: 'Scan QR to pay',
+      description: 'Pindai QR untuk membayar',
       color: 'bg-green-600'
     },
     {
       id: 'ovo',
       name: 'OVO',
       icon: faWallet,
-      description: 'Instant payment',
+      description: 'Pembayaran instan',
       color: 'bg-purple-600'
     },
     {
       id: 'qris',
       name: 'QRIS',
       icon: faQrcode,
-      description: 'Universal QR Code',
+      description: 'Kode QR universal',
       color: 'bg-gray-800'
     }
   ];
@@ -77,12 +77,11 @@ const PaymentPage = () => {
     setError(null);
 
     try {
-      // 1. Prepare final order data with payment method
+      // 1. Prepare final order data with selected payment method.
+      // Payment/order status is controlled by the server.
       const finalOrderData = {
         ...orderData,
         payment_method: selectedMethod,
-        payment_status: 'paid', // Simulating successful payment
-        order_status: 'pending' // Ready for influencer to review
       };
 
       // 2. Create order in database
@@ -90,18 +89,20 @@ const PaymentPage = () => {
 
       if (apiError) throw apiError;
 
+      const confirmedTotalPrice = Number(data.total_price || totalPrice);
+      const confirmedFinalTotal = confirmedTotalPrice + (confirmedTotalPrice * 0.05);
+
       // 3. Navigate to success page
       navigate('/payment/success', { 
         state: { 
           orderId: data.id,
           method: selectedMethod,
-          amount: finalTotal
+          amount: confirmedFinalTotal
         } 
       });
 
     } catch (err) {
-      console.error('Payment failed:', err);
-      setError(err.message || 'Payment failed. Please try again.');
+      setError(err.message || 'Pesanan gagal dibuat. Coba lagi.');
     } finally {
       setLoading(false);
     }
@@ -120,7 +121,7 @@ const PaymentPage = () => {
       <div className="container-custom max-w-4xl">
         <button onClick={() => navigate(-1)} className="flex items-center text-gray-600 hover:text-gray-900 mb-6 font-medium">
           <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
-          Back to Order Details
+          Kembali ke Detail Pesanan
         </button>
 
         <div className="grid md:grid-cols-3 gap-8">
@@ -130,9 +131,9 @@ const PaymentPage = () => {
               <div className="p-6 border-b border-gray-100">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center">
                   <FontAwesomeIcon icon={faCreditCard} className="mr-3 text-primary-600" />
-                  Select Payment Method
+                  Pilih Metode Pembayaran
                 </h2>
-                <p className="text-gray-500 text-sm mt-1">Choose your preferred way to pay</p>
+                <p className="text-gray-500 text-sm mt-1">Pilih metode pembayaran yang Anda inginkan</p>
               </div>
               
               <div className="p-6 space-y-4">
@@ -179,9 +180,9 @@ const PaymentPage = () => {
             <div className="bg-green-50 rounded-xl p-4 flex items-start gap-3">
               <FontAwesomeIcon icon={faShieldAlt} className="text-green-600 mt-1" />
               <div>
-                <h4 className="font-bold text-green-800 text-sm">100% Secure Payment</h4>
+                <h4 className="font-bold text-green-800 text-sm">Pesanan Diproses Aman</h4>
                 <p className="text-green-700 text-xs mt-1">
-                  Your payment is processed securely. Funds will be held in escrow until the influencer accepts your order.
+                  Status pembayaran akan dikonfirmasi melalui proses server sebelum ditandai lunas.
                 </p>
               </div>
             </div>
@@ -190,12 +191,15 @@ const PaymentPage = () => {
           {/* Sidebar - Summary */}
           <div className="md:col-span-1">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Order Summary</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Ringkasan Pesanan</h3>
               
               <div className="space-y-4 mb-6">
                 <div className="pb-4 border-b border-gray-100">
-                  <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-2">Campaign</p>
+                  <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-2">Kampanye</p>
                   <p className="font-medium text-gray-900 line-clamp-2">{orderData.campaign_name}</p>
+                  {orderData.package_label && (
+                    <p className="text-xs text-gray-500 mt-2">Paket: {orderData.package_label}</p>
+                  )}
                 </div>
                 
                 <div className="pb-4 border-b border-gray-100">
@@ -218,7 +222,7 @@ const PaymentPage = () => {
                     <span>{formatPrice(totalPrice)}</span>
                   </div>
                   <div className="flex justify-between text-gray-600 text-sm">
-                    <span>Platform Fee (5%)</span>
+                    <span>Biaya Platform (5%)</span>
                     <span>{formatPrice(platformFee)}</span>
                   </div>
                   <div className="pt-3 border-t border-gray-200 mt-2 flex justify-between font-bold text-lg text-gray-900">
@@ -246,12 +250,12 @@ const PaymentPage = () => {
                 {loading ? (
                   <>
                     <FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" />
-                    Processing...
+                    Memproses...
                   </>
                 ) : (
                   <>
                     <FontAwesomeIcon icon={faLock} className="mr-2" />
-                    Pay Now
+                    Buat Pesanan
                   </>
                 )}
               </button>

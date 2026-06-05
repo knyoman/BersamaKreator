@@ -57,23 +57,23 @@ const HomePage = () => {
           {/* Badge - Simple */}
           <div className="inline-flex items-center space-x-2 bg-gray-100 rounded-full px-4 py-2 mb-8">
             <FontAwesomeIcon icon={faRocket} className="text-gray-900" />
-            <span className="text-sm font-medium text-gray-700">#1 Influencer Matching Platform</span>
+            <span className="text-sm font-medium text-gray-700">Maksimalkan Promosi, Tingkatkan Penjualan</span>
           </div>
 
-          {/* Main Headline - VERY LARGE & Clean */}
-          <h1 className="text-6xl md:text-8xl lg:text-9xl font-black mb-6 leading-tight text-gray-900">
-            Connect with
+          {/* Main Headline - Clean */}
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black mb-6 leading-snug tracking-wide text-gray-900">
+            Promosikan Brand Anda
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600">
-              Nano Influencers
+              Dengan Influencer Yang Tepat
             </span>
           </h1>
 
           {/* Subheadline - Simple */}
           <p className="text-lg md:text-xl lg:text-2xl mb-12 text-gray-600 max-w-3xl mx-auto font-normal">
-            Platform marketplace yang menghubungkan UMKM dengan nano influencer lokal.
+            Temukan nano dan micro influencer lokal untuk meningkatkan jangkauan dan penjualan bisnis Anda.
             <br className="hidden md:block" />
-            <span className="font-medium text-gray-900">Simple, Fast, Effective.</span>
+            <span className="font-medium text-gray-900">Mudah, cepat, efektif.</span>
           </p>
 
           {/* CTA Buttons - Clean */}
@@ -82,14 +82,14 @@ const HomePage = () => {
               to="/register" 
               className="btn btn-primary text-lg px-10 py-4"
             >
-              Get Started
+              Mulai Sekarang
               <FontAwesomeIcon icon={faArrowRight} className="ml-2" />
             </Link>
             <Link 
               to="/influencers" 
               className="btn btn-outline text-lg px-10 py-4"
             >
-              Browse Influencers
+              Jelajahi Influencer
             </Link>
           </div>
 
@@ -99,19 +99,19 @@ const HomePage = () => {
               <div className="text-4xl font-bold text-gray-900 mb-1">
                 {statsLoading ? '...' : formatNumber(stats.influencersCount)}
               </div>
-              <div className="text-sm text-gray-600">Influencers</div>
+              <div className="text-sm text-gray-600">Influencer</div>
             </div>
             <div>
               <div className="text-4xl font-bold text-gray-900 mb-1">
                 {statsLoading ? '...' : formatNumber(stats.smeCount)}
               </div>
-              <div className="text-sm text-gray-600">SME Partners</div>
+              <div className="text-sm text-gray-600">Mitra UMKM</div>
             </div>
             <div>
               <div className="text-4xl font-bold text-gray-900 mb-1">
                 {statsLoading ? '...' : `${stats.successRate}%`}
               </div>
-              <div className="text-sm text-gray-600">Success Rate</div>
+              <div className="text-sm text-gray-600">Tingkat Sukses</div>
             </div>
           </div>
         </div>
@@ -122,7 +122,7 @@ const HomePage = () => {
         <div className="container-custom">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-              How It Works
+              Cara Kerja
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               3 langkah mudah untuk menemukan influencer yang tepat
@@ -133,18 +133,18 @@ const HomePage = () => {
             {[
               {
                 icon: faUsers,
-                title: 'Create Profile',
-                description: 'Daftar dan lengkapi profile bisnis Anda dengan target audience dan budget campaign'
+                title: 'Buat Profil',
+                description: 'Daftar dan lengkapi profil bisnis Anda dengan target audiens dan anggaran kampanye'
               },
               {
                 icon: faBullhorn,
-                title: 'Browse & Match',
-                description: 'Gunakan AI untuk menemukan influencer yang sesuai dengan niche dan budget Anda'
+                title: 'Cari & Cocokkan',
+                description: 'Gunakan AI untuk menemukan influencer yang sesuai dengan niche dan anggaran Anda'
               },
               {
                 icon: faChartLine,
-                title: 'Launch Campaign',
-                description: 'Hubungi influencer, buat kesepakatan, dan luncurkan campaign marketing Anda'
+                title: 'Luncurkan Kampanye',
+                description: 'Hubungi influencer, buat kesepakatan, dan luncurkan kampanye pemasaran Anda'
               }
             ].map((step, index) => (
               <div key={index} className="card p-8 text-center">
@@ -164,21 +164,21 @@ const HomePage = () => {
         <div className="container-custom">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-              Why Choose Us
+              Kenapa Memilih Kami
             </h2>
             <p className="text-lg text-gray-600">
-              Platform terpercaya untuk connecting SME dengan nano influencer
+              Platform terpercaya untuk menghubungkan UMKM dengan nano influencer
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { icon: faCheckCircle, title: 'AI-Powered Matching', desc: 'Smart algorithm untuk matching yang akurat' },
-              { icon: faStar, title: 'Verified Influencers', desc: 'Semua influencer sudah terverifikasi' },
-              { icon: faChartLine, title: 'Real-Time Analytics', desc: 'Tracking performa campaign secara real-time' },
-              { icon: faUsers, title: 'Local Focus', desc: 'Fokus pada nano influencer lokal Indonesia' },
-              { icon: faBullhorn, title: 'Budget Friendly', desc: 'Harga terjangkau untuk UMKM' },
-              { icon: faRocket, title: 'Fast Results', desc: 'Launch campaign dalam hitungan hari' }
+              { icon: faCheckCircle, title: 'Pencocokan Berbasis AI', desc: 'Algoritma pintar untuk pencocokan yang akurat' },
+              { icon: faStar, title: 'Influencer Terverifikasi', desc: 'Semua influencer sudah terverifikasi' },
+              { icon: faChartLine, title: 'Analitik Real-Time', desc: 'Pantau performa kampanye secara real-time' },
+              { icon: faUsers, title: 'Fokus Lokal', desc: 'Fokus pada nano influencer lokal Indonesia' },
+              { icon: faBullhorn, title: 'Ramah Anggaran', desc: 'Harga terjangkau untuk UMKM' },
+              { icon: faRocket, title: 'Hasil Cepat', desc: 'Luncurkan kampanye dalam hitungan hari' }
             ].map((feature, index) => (
               <div key={index} className="p-6">
                 <FontAwesomeIcon icon={feature.icon} className="text-gray-900 text-2xl mb-4" />
@@ -194,13 +194,13 @@ const HomePage = () => {
       <section className="section-padding bg-gray-900 text-white">
         <div className="container-custom text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Ready to Grow Your Business?
+            Siap Mengembangkan Bisnis Anda?
           </h2>
           <p className="text-lg mb-8 text-gray-300 max-w-2xl mx-auto">
             Mulai sekarang dan temukan influencer yang tepat untuk bisnis Anda
           </p>
           <Link to="/register" className="btn bg-white text-gray-900 hover:bg-gray-100 text-lg px-10 py-4 inline-block">
-            Get Started Free
+            Mulai Gratis
             <FontAwesomeIcon icon={faArrowRight} className="ml-2" />
           </Link>
         </div>

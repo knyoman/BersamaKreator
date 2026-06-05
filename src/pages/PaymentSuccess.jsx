@@ -39,8 +39,8 @@ const PaymentSuccess = () => {
              </div>
            </div>
 
-           <h1 className="text-3xl font-bold text-gray-900 mb-2">Payment Successful!</h1>
-           <p className="text-gray-500 mb-8">Your order has been placed and is now pending influencer approval.</p>
+           <h1 className="text-3xl font-bold text-gray-900 mb-2">Pesanan Berhasil Dibuat!</h1>
+           <p className="text-gray-500 mb-8">Pesanan Anda sudah dibuat dan sedang menunggu persetujuan influencer.</p>
 
            {/* Receipt Card */}
            <div className="bg-gray-50 rounded-2xl p-6 mb-8 border border-gray-100">
@@ -49,15 +49,15 @@ const PaymentSuccess = () => {
              </div>
              <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Amount Paid</span>
+                  <span className="text-gray-500">Estimasi Tagihan</span>
                   <span className="font-bold text-gray-900">{formatPrice(amount)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Payment Method</span>
+                  <span className="text-gray-500">Metode Dipilih</span>
                   <span className="font-medium text-gray-900 capitalize">{method?.replace('_', ' ')}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Transaction ID</span>
+                  <span className="text-gray-500">ID Pesanan</span>
                   <span className="font-mono text-xs text-gray-900">{state.orderId.split('-')[0]}...</span>
                 </div>
              </div>
@@ -69,14 +69,14 @@ const PaymentSuccess = () => {
                to="/dashboard" 
                className="btn btn-primary w-full py-4 flex items-center justify-center shadow-lg shadow-primary-500/20"
              >
-               Go to Dashboard
+               Buka Dasbor
                <FontAwesomeIcon icon={faArrowRight} className="ml-2" />
              </Link>
              <Link 
                to="/" 
                className="block py-3 text-gray-500 hover:text-gray-900 text-sm font-medium transition-colors"
              >
-               Back to Home
+               Kembali ke Beranda
              </Link>
            </div>
          </div>

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '../services/supabase';
 import { getUserProfile } from '../services/api';
 import { authLogger } from '../utils/logger';
@@ -11,9 +11,97 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Check if user is already logged in on mount
+  const fetchedUserIdRef = useRef(null);
+  const profileRequestIdRef = useRef(0);
+  const profileTimerRef = useRef(null);
+
   useEffect(() => {
-    const checkUser = async () => {
+    let isMounted = true;
+
+    const clearProfileTimer = () => {
+      if (profileTimerRef.current) {
+        clearTimeout(profileTimerRef.current);
+        profileTimerRef.current = null;
+      }
+    };
+
+    const isCurrentRequest = (requestId) => (
+      isMounted && requestId === profileRequestIdRef.current
+    );
+
+    const clearAuthState = () => {
+      profileRequestIdRef.current += 1;
+      clearProfileTimer();
+      fetchedUserIdRef.current = null;
+      setUser(null);
+      setUserProfile(null);
+      setError(null);
+      setLoading(false);
+    };
+
+    const loadUserProfile = async (authUser, sourceEvent) => {
+      const requestId = profileRequestIdRef.current + 1;
+      profileRequestIdRef.current = requestId;
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const { data: profile, error: profileError } = await getUserProfile(authUser.id);
+
+        if (!isCurrentRequest(requestId)) return;
+
+        if (profileError) {
+          authLogger.error(`Error fetching profile (${sourceEvent}):`, profileError.message);
+          fetchedUserIdRef.current = null;
+          setUserProfile(null);
+          setError(profileError.message || 'Tidak bisa memuat profil user.');
+          return;
+        }
+
+        fetchedUserIdRef.current = authUser.id;
+        setUserProfile(profile);
+      } catch (err) {
+        if (!isCurrentRequest(requestId)) return;
+
+        authLogger.error(`Unexpected profile fetch error (${sourceEvent}):`, err.message);
+        fetchedUserIdRef.current = null;
+        setUserProfile(null);
+        setError(err.message || 'Tidak bisa memuat profil user.');
+      } finally {
+        if (isCurrentRequest(requestId)) {
+          setLoading(false);
+        }
+      }
+    };
+
+    const scheduleProfileLoad = (authUser, sourceEvent) => {
+      if (fetchedUserIdRef.current === authUser.id) {
+        setError(null);
+        setLoading(false);
+        return;
+      }
+
+      clearProfileTimer();
+      profileTimerRef.current = setTimeout(() => {
+        profileTimerRef.current = null;
+        loadUserProfile(authUser, sourceEvent);
+      }, 0);
+    };
+
+    const handleSession = (event, session) => {
+      if (!isMounted) return;
+
+      if (!session?.user) {
+        clearAuthState();
+        return;
+      }
+
+      setUser(session.user);
+      scheduleProfileLoad(session.user, event);
+    };
+
+    const checkInitialSession = async () => {
       try {
         const {
           data: { session },
@@ -21,53 +109,29 @@ export const AuthProvider = ({ children }) => {
         } = await supabase.auth.getSession();
 
         if (sessionError) throw sessionError;
+        if (!isMounted) return;
 
-        if (session?.user) {
-          setUser(session.user);
-          // Get user profile from database
-          const { data: profile, error: profileError } = await getUserProfile(session.user.id);
-          if (profileError) {
-            authLogger.error('Error fetching profile:', profileError.message);
-          } else {
-            setUserProfile(profile);
-          }
-        }
+        handleSession('INITIAL_SESSION_CHECK', session);
       } catch (err) {
-        authLogger.error('Error checking user:', err.message);
+        if (!isMounted) return;
+
+        authLogger.error('Error checking session:', err.message);
         setError(err.message);
-      } finally {
         setLoading(false);
       }
     };
 
-    checkUser();
-
-    // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-        // Only set loading if we don't have a profile yet
-        if (!userProfile) setLoading(true);
-        
-        const { data: profile, error: profileError } = await getUserProfile(session.user.id);
-        
-        if (profileError) {
-          authLogger.error('Error fetching profile in auth change:', profileError.message);
-          setError(profileError.message);
-        } else {
-          setUserProfile(profile);
-        }
-        setLoading(false);
-      } else {
-        setUser(null);
-        setUserProfile(null);
-        setLoading(false);
-      }
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      handleSession(event, session);
     });
 
+    checkInitialSession();
+
     return () => {
+      isMounted = false;
+      clearProfileTimer();
       subscription?.unsubscribe();
     };
   }, []);

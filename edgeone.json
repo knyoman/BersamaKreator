@@ -19,6 +19,56 @@
         "path": "/create-order",
         "method": ["POST", "OPTIONS"],
         "function": "create-order"
+      },
+      {
+        "path": "/update-order-status",
+        "method": ["POST", "OPTIONS"],
+        "function": "update-order-status"
+      },
+      {
+        "path": "/influencer-ai-assistant",
+        "method": ["POST", "OPTIONS"],
+        "function": "influencer-ai-assistant"
+      },
+      {
+        "path": "/content-strategy-agent",
+        "method": ["POST", "OPTIONS"],
+        "function": "content-strategy-agent"
+      },
+      {
+        "path": "/market-research-agent",
+        "method": ["POST", "OPTIONS"],
+        "function": "market-research-agent"
+      },
+      {
+        "path": "/icp-agent",
+        "method": ["POST", "OPTIONS"],
+        "function": "icp-agent"
+      },
+      {
+        "path": "/competitor-analysis-agent",
+        "method": ["POST", "OPTIONS"],
+        "function": "competitor-analysis-agent"
+      },
+      {
+        "path": "/social-post-agent",
+        "method": ["POST", "OPTIONS"],
+        "function": "social-post-agent"
+      },
+      {
+        "path": "/email-campaign-agent",
+        "method": ["POST", "OPTIONS"],
+        "function": "email-campaign-agent"
+      },
+      {
+        "path": "/ad-copy-agent",
+        "method": ["POST", "OPTIONS"],
+        "function": "ad-copy-agent"
+      },
+      {
+        "path": "/marketing-ops-agent",
+        "method": ["POST", "OPTIONS"],
+        "function": "marketing-ops-agent"
       }
     ]
   },

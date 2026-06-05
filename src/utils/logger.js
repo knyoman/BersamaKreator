@@ -4,6 +4,7 @@
  */
 
 const isDevelopment = import.meta.env.MODE === 'development' || import.meta.env.DEV;
+const isClientLoggingEnabled = isDevelopment || import.meta.env.VITE_ENABLE_CLIENT_LOGS === 'true';
 
 class Logger {
   constructor(context = '') {
@@ -15,47 +16,43 @@ class Logger {
   }
 
   debug(...args) {
-    if (isDevelopment) {
+    if (isClientLoggingEnabled) {
       console.log(this._formatMessage(args[0]), ...args.slice(1));
     }
   }
 
   info(...args) {
-    if (isDevelopment) {
+    if (isClientLoggingEnabled) {
       console.info(this._formatMessage(args[0]), ...args.slice(1));
     }
   }
 
   warn(...args) {
-    if (isDevelopment) {
+    if (isClientLoggingEnabled) {
       console.warn(this._formatMessage(args[0]), ...args.slice(1));
     }
   }
 
   error(...args) {
-    // Errors are logged in both dev and production, but sanitized in production
-    if (isDevelopment) {
+    if (isClientLoggingEnabled) {
       console.error(this._formatMessage(args[0]), ...args.slice(1));
-    } else {
-      // In production, only log the error message, not full details
-      console.error(this._formatMessage(args[0]));
     }
   }
 
   group(label) {
-    if (isDevelopment && console.group) {
+    if (isClientLoggingEnabled && console.group) {
       console.group(label);
     }
   }
 
   groupEnd() {
-    if (isDevelopment && console.groupEnd) {
+    if (isClientLoggingEnabled && console.groupEnd) {
       console.groupEnd();
     }
   }
 
   table(data) {
-    if (isDevelopment && console.table) {
+    if (isClientLoggingEnabled && console.table) {
       console.table(data);
     }
   }

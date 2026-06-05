@@ -1,10 +1,19 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faInstagram, faTwitter, faLinkedin, faFacebook } from '@fortawesome/free-brands-svg-icons'
 import { faEnvelope, faPhone, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons'
+import { useAuth } from '../../context/AuthContext'
 
 const Footer = () => {
   const currentYear = new Date().getFullYear()
+  const location = useLocation()
+  const { userProfile } = useAuth()
+
+  const isRoleWorkspace = ['influencer', 'sme', 'admin'].includes(userProfile?.user_type)
+
+  if (isRoleWorkspace && location.pathname.startsWith('/dashboard')) {
+    return null
+  }
 
   return (
     <footer className="bg-gray-900 text-gray-300">
@@ -14,7 +23,7 @@ const Footer = () => {
           <div>
             <h3 className="text-white font-bold text-lg mb-4">BersamaKreator</h3>
             <p className="text-sm mb-4">
-              Platform yang menghubungkan UMKM/SME dengan nano influencer lokal untuk kampanye marketing yang efektif.
+              Platform yang menghubungkan UMKM dengan nano influencer lokal untuk kampanye pemasaran yang efektif.
             </p>
             <div className="flex space-x-4">
               <a href="https://www.instagram.com/knyoman.26" className="hover:text-primary-400 transition-colors">
@@ -34,29 +43,29 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-4">Quick Links</h3>
+            <h3 className="text-white font-bold text-lg mb-4">Tautan Cepat</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/" className="hover:text-primary-400 transition-colors">Home</Link></li>
-              <li><Link to="/influencers" className="hover:text-primary-400 transition-colors">Find Influencers</Link></li>
-              <li><Link to="/about" className="hover:text-primary-400 transition-colors">About Us</Link></li>
-              <li><Link to="/ai-recommendations" className="hover:text-primary-400 transition-colors">AI Recommendations</Link></li>
+              <li><Link to="/" className="hover:text-primary-400 transition-colors">Beranda</Link></li>
+              <li><Link to="/influencers" className="hover:text-primary-400 transition-colors">Cari Influencer</Link></li>
+              <li><Link to="/about" className="hover:text-primary-400 transition-colors">Tentang Kami</Link></li>
+              <li><Link to="/ai-recommendations" className="hover:text-primary-400 transition-colors">Rekomendasi AI</Link></li>
             </ul>
           </div>
 
           {/* For Businesses */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-4">For Businesses</h3>
+            <h3 className="text-white font-bold text-lg mb-4">Untuk Bisnis</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/register" className="hover:text-primary-400 transition-colors">Sign Up as SME</Link></li>
-              <li><Link to="/how-it-works" className="hover:text-primary-400 transition-colors">How It Works</Link></li>
-              <li><Link to="/pricing" className="hover:text-primary-400 transition-colors">Pricing</Link></li>
-              <li><Link to="/terms" className="hover:text-primary-400 transition-colors">Terms & Conditions</Link></li>
+              <li><Link to="/register" className="hover:text-primary-400 transition-colors">Daftar sebagai UMKM</Link></li>
+              <li><Link to="/how-it-works" className="hover:text-primary-400 transition-colors">Cara Kerja</Link></li>
+              <li><Link to="/pricing" className="hover:text-primary-400 transition-colors">Harga</Link></li>
+              <li><Link to="/terms" className="hover:text-primary-400 transition-colors">Syarat & Ketentuan</Link></li>
             </ul>
           </div>
 
           {/* Contact */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-4">Contact Us</h3>
+            <h3 className="text-white font-bold text-lg mb-4">Hubungi Kami</h3>
             <ul className="space-y-3 text-sm">
               <li className="flex items-start space-x-3">
                 <FontAwesomeIcon icon={faMapMarkerAlt} className="mt-1" />
@@ -80,7 +89,7 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="border-t border-gray-800 mt-8 pt-8 text-sm text-center">
-          <p>&copy; {currentYear} BersamaKreator. All rights reserved.</p>
+          <p>&copy; {currentYear} BersamaKreator. Seluruh hak cipta dilindungi.</p>
         </div>
       </div>
     </footer>

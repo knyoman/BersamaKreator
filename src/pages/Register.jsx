@@ -4,6 +4,24 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faEnvelope, faLock, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { signUp } from '../services/api';
 
+const formatRegistrationError = (message) => {
+  if (!message) return 'Registrasi gagal. Coba lagi.';
+
+  if (message.includes('User already registered') || message.includes('already registered')) {
+    return 'Email ini sudah terdaftar. Silakan login atau gunakan email lain.';
+  }
+
+  if (message.includes('Password should be') || message.includes('Password must')) {
+    return 'Password belum memenuhi syarat keamanan.';
+  }
+
+  if (message.includes('Invalid email')) {
+    return 'Format email tidak valid.';
+  }
+
+  return message;
+};
+
 const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -31,19 +49,19 @@ const Register = () => {
     try {
       // Validation
       if (!formData.name.trim()) {
-        setError('Name is required');
+        setError('Nama wajib diisi');
         setLoading(false);
         return;
       }
 
       if (formData.password !== formData.confirmPassword) {
-        setError('Passwords do not match');
+        setError('Password dan konfirmasi password tidak sama');
         setLoading(false);
         return;
       }
 
       if (formData.password.length < 6) {
-        setError('Password must be at least 6 characters');
+        setError('Password minimal 6 karakter');
         setLoading(false);
         return;
       }
@@ -56,19 +74,19 @@ const Register = () => {
       const { data, error } = await signUp(formData.email, formData.password, userData);
 
       if (error) {
-        setError(error.message || 'Registration failed. Please try again.');
+        setError(formatRegistrationError(error.message));
         setLoading(false);
       } else if (data?.user) {
         // Registration successful
         navigate('/login', {
-          state: { message: 'Account created successfully! Please log in.' },
+          state: { message: 'Akun berhasil dibuat. Silakan login.' },
         });
       } else {
-        setError('Registration failed. Please try again.');
+        setError('Registrasi gagal. Coba lagi.');
         setLoading(false);
       }
     } catch (err) {
-      setError(err.message || 'An error occurred during registration');
+      setError(formatRegistrationError(err.message) || 'Terjadi kesalahan saat registrasi');
       setLoading(false);
     }
   };
@@ -77,8 +95,8 @@ const Register = () => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12">
       <div className="max-w-md w-full mx-4">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Create Account</h1>
-          <p className="text-gray-600">Join BersamaKreator today</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Buat Akun</h1>
+          <p className="text-gray-600">Bergabung dengan BersamaKreator hari ini</p>
         </div>
 
         <div className="bg-white rounded-xl p-8 border border-gray-100">
@@ -87,7 +105,7 @@ const Register = () => {
 
             {/* Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <FontAwesomeIcon icon={faUser} className="text-gray-400" />
@@ -98,7 +116,7 @@ const Register = () => {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  placeholder="John Doe"
+                  placeholder="Nama Anda"
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                 />
               </div>
@@ -106,7 +124,7 @@ const Register = () => {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Alamat Email</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <FontAwesomeIcon icon={faEnvelope} className="text-gray-400" />
@@ -125,9 +143,9 @@ const Register = () => {
 
             {/* User Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">I am a...</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Saya adalah...</label>
               <select name="userType" value={formData.userType} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent">
-                <option value="sme">Business Owner (SME)</option>
+                <option value="sme">Pemilik Bisnis (UMKM)</option>
                 <option value="influencer">Influencer</option>
               </select>
             </div>
@@ -145,7 +163,7 @@ const Register = () => {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  placeholder="••••••••"
+                  placeholder="********"
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                 />
               </div>
@@ -153,7 +171,7 @@ const Register = () => {
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Konfirmasi Password</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <FontAwesomeIcon icon={faLock} className="text-gray-400" />
@@ -164,7 +182,7 @@ const Register = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
-                  placeholder="••••••••"
+                  placeholder="********"
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                 />
               </div>
@@ -172,9 +190,9 @@ const Register = () => {
 
             {/* Terms */}
             <div className="text-xs text-gray-600">
-              By signing up, you agree to our{' '}
+              Dengan mendaftar, Anda menyetujui{' '}
               <Link to="/terms" className="text-gray-900 hover:underline">
-                Terms & Conditions
+                Syarat & Ketentuan
               </Link>
             </div>
 
@@ -183,10 +201,10 @@ const Register = () => {
               {loading ? (
                 <>
                   <FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" />
-                  Creating account...
+                  Membuat akun...
                 </>
               ) : (
-                'Create Account'
+                'Buat Akun'
               )}
             </button>
           </form>
@@ -197,16 +215,16 @@ const Register = () => {
               <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">or</span>
+              <span className="px-2 bg-white text-gray-500">atau</span>
             </div>
           </div>
 
           {/* Login Link */}
           <div className="text-center">
             <p className="text-sm text-gray-600">
-              Already have an account?{' '}
+              Sudah punya akun?{' '}
               <Link to="/login" className="font-medium text-gray-900 hover:underline">
-                Sign in
+                Masuk
               </Link>
             </p>
           </div>

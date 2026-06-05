@@ -18,8 +18,6 @@ const Register = lazy(() => import('./pages/Register'));
 const PaymentPage = lazy(() => import('./pages/PaymentPage'));
 const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess'));
 
-import { runAuthTests } from './utils/AuthDiagnostics';
-
 // Simple Loading component
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -29,9 +27,21 @@ const LoadingSpinner = () => (
 
 function App() {
   useEffect(() => {
-    // Expose diagnostic tool to console
-    window.runAuthTests = runAuthTests;
-    console.log('🛠️ Auth Debugger Loaded: Type "runAuthTests()" in console to check system health.');
+    if (!import.meta.env.DEV) return undefined;
+
+    let isMounted = true;
+
+    import('./utils/AuthDiagnostics').then(({ runAuthTests }) => {
+      if (!isMounted) return;
+
+      window.runAuthTests = runAuthTests;
+      console.info('Auth debugger aktif. Jalankan runAuthTests() di console untuk mengecek kesehatan sistem.');
+    });
+
+    return () => {
+      isMounted = false;
+      delete window.runAuthTests;
+    };
   }, []);
 
   return (
@@ -44,7 +54,7 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/influencers" element={<InfluencerListing />} />
             <Route path="/influencer/:username" element={<InfluencerDetail />} />
-            <Route path="/dashboard" element={<ProtectedRoute element={<DashboardRouter />} />} />
+            <Route path="/dashboard/*" element={<ProtectedRoute element={<DashboardRouter />} />} />
             <Route path="/order/:influencerId" element={<ProtectedRoute element={<OrderSystem />} requiredRole="sme" />} />
             <Route path="/ai-recommendations" element={<AIRecommendations />} />
             <Route path="/terms" element={<Terms />} />
